@@ -29,7 +29,7 @@
     "prettier": "^3.5.3",
     "tsm": "^2.3.0",
     "typescript": "^5.8.2",
-    "typescript-eslint": "^8.29.0",
+    "typescript-eslint": "^8.29.1",
     "vite": "^6.2.5",
     "vitest": "^2.0.5",
     "vue-tsc": "^2.2.8",
