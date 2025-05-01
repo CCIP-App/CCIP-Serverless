@@ -34,7 +34,7 @@
     "vitest": "^2.0.5",
     "vue-tsc": "^2.2.8",
     "wrangler": "^4.10.0",
-    "zod": "^3.24.2"
+    "zod": "^3.24.3"
   },
   "dependencies": {
     "chanfana": "^2.7.2",
