@@ -24,7 +24,7 @@
     "esbuild": "^0.25.5",
     "eslint": "^9.28.0",
     "eslint-plugin-vue": "^9.33.0",
-    "expect": "^29.7.0",
+    "expect": "^30.0.0",
     "picocolors": "^1.1.1",
     "prettier": "^3.5.3",
     "tsm": "^2.3.0",
