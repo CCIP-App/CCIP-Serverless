@@ -1,3 +1,4 @@
+import "@abraham/reflection";
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
 import { register as registerApi } from "./handler/api/index";
