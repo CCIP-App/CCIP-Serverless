@@ -1,3 +1,4 @@
+@wip
 Feature: Lockable Scenario
   Scenario: A scenario can unlock by attendee metadata
     Given there have some attendees

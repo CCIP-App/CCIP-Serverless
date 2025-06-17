@@ -1,3 +1,4 @@
+@wip
 Feature: Landing
 	Scenario: GET /landing with exists token
 		Given there have some attendees

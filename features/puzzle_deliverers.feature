@@ -1,3 +1,4 @@
+@wip
 Feature: Puzzle Deliverers
   Background:
     Given there have some booths

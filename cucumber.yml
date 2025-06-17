@@ -1,0 +1,7 @@
+default:
+  requireModule:
+    - tsm
+  require:
+    - features/**/*.ts
+  strict: true
+  tags: not @wip

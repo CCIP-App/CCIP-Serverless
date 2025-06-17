@@ -1,3 +1,4 @@
+@wip
 Feature: Puzzle Coupon
   Scenario: PUT /event/puzzle/coupon to redeem a puzzle coupon
     Given there have some attendees

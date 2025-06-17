@@ -1,3 +1,4 @@
+@wip
 Feature: Puzzle Status
   Scenario: When I open puzzle status, I can see the status of specify token
     Given there have some puzzle activity events

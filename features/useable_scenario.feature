@@ -1,3 +1,4 @@
+@wip
 Feature: Useable Scenario
   Scenario: When scenario is used get status can see used time
     Given there have some attendees

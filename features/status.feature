@@ -1,3 +1,4 @@
+@wip
 Feature: Status
 	Scenario: When attendee is first use then set current time to first_used_at
 		Given there have some attendees

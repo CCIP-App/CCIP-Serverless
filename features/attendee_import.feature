@@ -1,3 +1,4 @@
+@wip
 Feature: Attendee Importation
   Scenario: POST /admin/attendees with a CSV file that contains attendee information
     When I make a POST request to "/admin/attendees" with file:

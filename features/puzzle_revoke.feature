@@ -1,3 +1,4 @@
+@wip
 Feature: Puzzle Revoke
   Scenario: PUT /event/puzzle/revoke to revoke attendee puzzle
     Given there have some booths

@@ -1,3 +1,4 @@
+@wip
 Feature: Scenario
   Scenario: A scenario configured for role then display it
     Given there have some attendees

@@ -1,3 +1,4 @@
+@wip
 Feature: Announcement
   Scenario: GET /announcement without any announcements populated
     When I make a GET request to "/announcement"

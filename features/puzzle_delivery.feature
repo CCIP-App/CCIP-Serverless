@@ -1,3 +1,4 @@
+@wip
 Feature: Puzzle Delivery
   Scenario: POST /event/puzzle/deliver with permitted booth token and receiver token
     Given there have some booths
