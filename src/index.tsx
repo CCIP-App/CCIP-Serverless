@@ -1,7 +1,9 @@
 import "@abraham/reflection";
+
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
-import { register as registerApi } from "./handler/api/index";
+
+import { register as registerApi } from "@/handler/api";
 import { renderer } from "./renderer";
 
 const app = new Hono();
@@ -11,7 +13,7 @@ const openapi = fromHono(app, {
   schema: {
     info: {
       title: "CCIP Serverless API",
-      version: "1.0.0",
+      version: "0.1.0",
     },
   },
 });
