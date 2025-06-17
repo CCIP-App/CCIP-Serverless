@@ -1,3 +1,0 @@
--- Migration number: 0000 	 2023-08-16T15:31:35.758Z
-DROP TABLE IF EXISTS attendees;
-CREATE TABLE IF NOT EXISTS attendees (token VARCHAR(255) NOT NULL, user_id VARCHAR(255), PRIMARY KEY (token));

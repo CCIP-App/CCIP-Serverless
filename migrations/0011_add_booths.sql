@@ -1,8 +1,0 @@
--- Migration number: 0011 	 2023-09-25T13:34:05.039Z
-DROP TABLE IF EXISTS booths;
-CREATE TABLE IF NOT EXISTS booths (
-    token VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    event_id VARCHAR(255) NOT NULL,
-    PRIMARY KEY (token)
-);

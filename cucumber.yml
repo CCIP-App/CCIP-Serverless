@@ -1,9 +1,0 @@
-default:
-  requireModule:
-    - tsm
-  require:
-    - features/**/*.ts
-  strict: true
-  tags: not @wip
-worldParameters:
-  mockDate: '2023-08-27 00:00:00 GMT+8'
