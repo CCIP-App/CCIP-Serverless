@@ -28,5 +28,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Run Prettier check
+        run: pnpm exec prettier . --check
+
       - name: Run E2E tests
         run: pnpm e2e
