@@ -4,6 +4,6 @@
     "target": "ES2022",
     "module": "Node16",
     "esModuleInterop": true,
-    "types": ["@types/node", "vite/client"],
+    "types": ["@types/node", "vite/client"]
   }
 }
