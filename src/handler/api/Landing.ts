@@ -28,7 +28,7 @@ export class LandingController extends OpenAPIRoute {
 
   async handle(c: Context<Env>) {
     return c.json({
-      nickname: 'TODO'
+      nickname: 'Aotoki'
     })
   }
 }

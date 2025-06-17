@@ -1,7 +1,7 @@
 default:
-  requireModule:
-    - tsm
-  require:
+  loader:
+    - ts-node/esm
+  import:
     - features/**/*.ts
   strict: true
   tags: not @wip

@@ -12,14 +12,18 @@
   "dependencies": {
     "chanfana": "^2.8.0",
     "hono": "^4.7.11",
+    "ts-node": "^10.9.2",
     "zod": "^3.25.67"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.2.3",
     "@cucumber/cucumber": "^11.3.0",
-    "tsm": "^2.3.0",
+    "@types/node": "^24.0.3",
+    "expect": "^30.0.0",
+    "miniflare": "^4.20250604.1",
     "vite": "^6.3.5",
     "vite-ssr-components": "^0.3.0",
+    "vitest": "^3.2.3",
     "wrangler": "^4.17.0"
   }
 }
