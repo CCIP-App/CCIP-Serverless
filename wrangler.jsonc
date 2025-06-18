@@ -3,4 +3,27 @@
   "name": "ccip-serverless",
   "compatibility_date": "2024-04-01",
   "main": "./src/index.tsx",
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "EventDatabase"
+      ]
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "EVENT_DATABASE",
+        "class_name": "EventDatabase"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "type": "Text",
+      "globs": ["**/*.sql"],
+      "fallthrough": true
+    }
+  ]
 }

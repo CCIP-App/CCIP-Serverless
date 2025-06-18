@@ -25,3 +25,4 @@ app.get("/", (c) => {
 });
 
 export default app;
+export { EventDatabase } from "@/infra/EventDatabase";

@@ -13,6 +13,7 @@ export default class CcipServerlessWorld extends World {
 
   private _lastResponse: Response | null = null;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(options: any) {
     super(options);
   }
@@ -24,13 +25,18 @@ export default class CcipServerlessWorld extends World {
       scriptPath: "index.js",
       rootPath: ".wrangler/cucumber/ccip_serverless",
       modules: true,
-      modulesRules: [{ type: "ESModule", include: ["**/*.js", "**/*.mjs"] }],
+      durableObjects: {
+        EVENT_DATABASE: {
+          className: "EventDatabase",
+          useSQLite: true,
+        },
+      },
+      modulesRules: [
+        { type: "ESModule", include: ["**/*.js", "**/*.mjs"] },
+        { type: "Text", include: ["**/*.sql"] },
+      ],
     });
     await this._miniflare.ready;
-
-    const res = await this._miniflare.dispatchFetch(
-      "http://example.com/assets/style-DaQtSkzp.css",
-    );
   }
 
   async fetch(request: RequestInfo, init?: RequestInitCfType) {
