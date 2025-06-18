@@ -24,6 +24,7 @@
     "@eslint/js": "^9.29.0",
     "@types/node": "^24.0.3",
     "eslint": "^9.29.0",
+    "eslint-plugin-react": "^7.37.5",
     "expect": "^30.0.0",
     "globals": "^16.2.0",
     "miniflare": "^4.20250612.0",
