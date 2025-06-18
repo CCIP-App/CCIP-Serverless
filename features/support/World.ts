@@ -1,3 +1,4 @@
+import { EventDatabase } from "@/index";
 import {
   After,
   Before,
@@ -9,19 +10,18 @@ import { Miniflare, RequestInfo, RequestInitCfType, Response } from "miniflare";
 import { spawnSync } from "node:child_process";
 
 export default class CcipServerlessWorld extends World {
-  private _miniflare: Miniflare | null = null;
+  public static readonly WorkerName = "ccip-serverless";
 
+  private readonly _miniflare: Miniflare;
   private _lastResponse: Response | null = null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(options: any) {
     super(options);
-  }
 
-  async init() {
     // TODO: Need to confirm correct static assets configuration
     this._miniflare = new Miniflare({
-      name: "ccip-serverless",
+      name: CcipServerlessWorld.WorkerName,
       scriptPath: "index.js",
       rootPath: ".wrangler/cucumber/ccip_serverless",
       modules: true,
@@ -37,6 +37,9 @@ export default class CcipServerlessWorld extends World {
         { type: "Text", include: ["**/*.sql"] },
       ],
     });
+  }
+
+  async init() {
     await this._miniflare.ready;
   }
 
@@ -46,11 +49,17 @@ export default class CcipServerlessWorld extends World {
   }
 
   async dispose() {
-    await this._miniflare?.dispose();
+    await this._miniflare.dispose();
   }
 
-  get miniflare(): Miniflare | null {
+  get miniflare(): Miniflare {
     return this._miniflare;
+  }
+
+  async getDatabase(): Promise<DurableObjectNamespace<EventDatabase>> {
+    return (await this._miniflare.getDurableObjectNamespace(
+      "EVENT_DATABASE",
+    )) as unknown as DurableObjectNamespace<EventDatabase>;
   }
 
   get lastResponse(): Response | null {
