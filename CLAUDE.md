@@ -58,6 +58,12 @@ CCIP Serverless is the serverless OPass backend built on Cloudflare Workers with
 - `src/repository/DoAttendeeRepository.ts` - Attendee data access layer
 - Uses DatabaseConnector for consistent data access
 
+**Use Cases Layer**:
+
+- `src/usecase/` - Business logic and use case implementations
+- `src/usecase/interface.ts` - Repository interfaces and dependency injection tokens
+- Use cases are plain classes without @injectable decorator (entities and use cases have no dependencies)
+
 **API Controllers**:
 
 - `src/handler/api/` - API route controllers using Chanfana OpenAPI
@@ -119,6 +125,26 @@ Repositories use DatabaseConnector and return typed results:
 async findByToken(token: string): Promise<Schema | null> {
   const res = await this.connection.executeAll(sql`SELECT * FROM table WHERE token = ${token}`);
   return res.length > 0 ? res[0] : null;
+}
+```
+
+### Dependency Injection Pattern
+
+Use symbols for dependency injection tokens instead of hardcoded strings:
+
+```typescript
+// Define tokens and interfaces
+export const AttendeeRepositoryToken = Symbol("AttendeeRepository");
+export interface AttendeeRepository {
+  findAttendeeByToken(token: string): Promise<Attendee | null>;
+}
+
+// Use case implementation (no @injectable decorator)
+export class GetProfile {
+  constructor(
+    @inject(AttendeeRepositoryToken)
+    private readonly attendeeRepository: AttendeeRepository,
+  ) {}
 }
 ```
 

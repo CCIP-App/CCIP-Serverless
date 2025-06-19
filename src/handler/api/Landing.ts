@@ -1,8 +1,11 @@
-import { DatabaseConnector } from "@/infra/DatabaseConnector";
-import { DoAttendeeRepository } from "@/repository/DoAttendeeRepository";
+import { GetProfile } from "@/usecase/GetProfile";
+import {
+  AttendeeRepository,
+  AttendeeRepositoryToken,
+} from "@/usecase/interface";
 import { OpenAPIRouteSchema } from "chanfana";
-import { env } from "cloudflare:workers";
 import { Context, Env } from "hono";
+import { container } from "tsyringe";
 import { z } from "zod";
 import { BaseController } from "./BaseController";
 
@@ -45,9 +48,11 @@ export class LandingController extends BaseController {
     const data = await this.getValidatedData<typeof this.schema>();
     const query = data.query as unknown as { token: string };
 
-    const conn = DatabaseConnector.build(env.EVENT_DATABASE, "ccip-serverless");
-    const repository = new DoAttendeeRepository(conn);
-    const attendee = await repository.findAttendeeByToken(query.token);
+    const attendeeRepository = container.resolve<AttendeeRepository>(
+      AttendeeRepositoryToken,
+    );
+    const getProfile = new GetProfile(attendeeRepository);
+    const attendee = await getProfile.execute(query.token);
 
     if (!attendee) {
       return c.json({ message: "invalid token" }, 400);

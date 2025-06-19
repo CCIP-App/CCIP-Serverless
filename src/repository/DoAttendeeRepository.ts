@@ -1,6 +1,7 @@
 import { Attendee } from "@/entity/Attendee";
 import { DatabaseConnector } from "@/infra/DatabaseConnector";
 import { EventDatabase } from "@/infra/EventDatabase";
+import { AttendeeRepository } from "@/usecase/interface";
 import { sql } from "drizzle-orm";
 
 type AttendeeSchema = {
@@ -9,7 +10,7 @@ type AttendeeSchema = {
   first_used_at: number;
 };
 
-export class DoAttendeeRepository {
+export class DoAttendeeRepository implements AttendeeRepository {
   constructor(private readonly connection: DatabaseConnector<EventDatabase>) {}
 
   async findAttendeeByToken(token: string): Promise<Attendee | null> {
