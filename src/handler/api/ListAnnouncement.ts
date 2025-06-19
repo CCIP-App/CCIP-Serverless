@@ -1,3 +1,4 @@
+import { AllAnnouncementQuery } from "@/usecase/AllAnnouncementQuery";
 import { OpenAPIRouteSchema } from "chanfana";
 import { Context } from "hono";
 import { z } from "zod";
@@ -32,7 +33,12 @@ export class ListAnnouncementController extends BaseController {
   } as OpenAPIRouteSchema;
 
   async handle(c: Context<{ Bindings: Env }>) {
-    // For now, just return empty array for the first scenario
-    return c.json([]);
+    const data = await this.getValidatedData<typeof this.schema>();
+    const query = data.query as unknown as { token?: string };
+
+    const allAnnouncementQuery = new AllAnnouncementQuery();
+    const announcements = await allAnnouncementQuery.execute(query.token);
+
+    return c.json(announcements);
   }
 }
