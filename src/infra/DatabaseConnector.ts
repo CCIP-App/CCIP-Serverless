@@ -1,0 +1,30 @@
+import { SQLWrapper } from "drizzle-orm";
+import { SQLiteDialect, SQLiteSyncDialect } from "drizzle-orm/sqlite-core";
+
+export interface DurableDatabase {
+  executeAll<T>(raw: string): Promise<T[]>;
+}
+
+export class DatabaseConnector<
+  T extends Rpc.DurableObjectBranded & DurableDatabase,
+> {
+  private readonly dialect: SQLiteDialect = new SQLiteSyncDialect();
+
+  constructor(private readonly database: DurableObjectStub<T>) {}
+
+  static build<T extends Rpc.DurableObjectBranded & DurableDatabase>(
+    ns: DurableObjectNamespace<T>,
+    name: string,
+  ): DatabaseConnector<T> {
+    const id = ns.idFromName(name);
+    const stub = ns.get(id);
+    return new DatabaseConnector<T>(stub);
+  }
+
+  async executeAll<T>(wrapper: SQLWrapper): Promise<T[]> {
+    const inlineSql = wrapper.getSQL().inlineParams();
+    const { sql } = this.dialect.sqlToQuery(inlineSql);
+
+    return this.database.executeAll(sql);
+  }
+}

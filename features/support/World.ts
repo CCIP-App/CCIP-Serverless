@@ -1,4 +1,5 @@
 import { EventDatabase } from "@/index";
+import { DatabaseConnector } from "@/infra/DatabaseConnector";
 import {
   After,
   Before,
@@ -56,10 +57,16 @@ export default class CcipServerlessWorld extends World {
     return this._miniflare;
   }
 
-  async getDatabase(): Promise<DurableObjectNamespace<EventDatabase>> {
-    return (await this._miniflare.getDurableObjectNamespace(
+  async getDatabaseNamespace(): Promise<DurableObjectNamespace<EventDatabase>> {
+    return this._miniflare.getDurableObjectNamespace(
       "EVENT_DATABASE",
-    )) as unknown as DurableObjectNamespace<EventDatabase>;
+    ) as unknown as DurableObjectNamespace<EventDatabase>;
+  }
+
+  async getDatabase(name?: string): Promise<DatabaseConnector<EventDatabase>> {
+    const defaultName = name ?? "ccip-serverless";
+    const ns = await this.getDatabaseNamespace();
+    return DatabaseConnector.build<EventDatabase>(ns, defaultName);
   }
 
   get lastResponse(): Response | null {

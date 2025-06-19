@@ -5,8 +5,9 @@ import { migrate } from "drizzle-orm/durable-sqlite/migrator";
 import * as schema from "@/db/schema";
 import { DoAttendeeRepository } from "@/repository/DoAttendeeRepository";
 import migrations from "../../drizzle/migrations";
+import { DurableDatabase } from "./DatabaseConnector";
 
-export class EventDatabase extends DurableObject {
+export class EventDatabase extends DurableObject implements DurableDatabase {
   private readonly _connection: DrizzleSqliteDODatabase<typeof schema>;
   private readonly _storage: DurableObjectStorage;
 
@@ -32,7 +33,7 @@ export class EventDatabase extends DurableObject {
     return new DoAttendeeRepository(this._connection);
   }
 
-  async execute(rawSql: string) {
-    return this._connection.run(rawSql);
+  async executeAll<T>(rawSql: string): Promise<T[]> {
+    return this._connection.all(rawSql);
   }
 }

@@ -1,20 +1,16 @@
 import { DataTable, Given } from "@cucumber/cucumber";
+import { sql } from "drizzle-orm";
+
 import World from "../support/World";
 
 Given(
   "there have some attendees",
   async function (this: World, dataTable: DataTable) {
-    const database = await this.getDatabase();
-    const id = database.idFromName("ccip-serverless");
-    const stub = database.get(id);
+    const conn = await this.getDatabase();
 
     dataTable.hashes().forEach(async (row) => {
-      // Assuming the DoAttendeeRepository has a method to create an attendee
-      const repository = stub.getAttendeeRepository();
-      await repository.save({
-        token: row.token,
-        displayName: row.display_name,
-      });
+      const insertQuery = sql`INSERT INTO attendees (token, display_name) VALUES (${row.token}, ${row.display_name})`;
+      await conn.executeAll(insertQuery);
     });
   },
 );
