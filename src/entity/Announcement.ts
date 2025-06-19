@@ -1,3 +1,5 @@
+import { AttendeeRole } from "./Attendee";
+
 export enum AnnouncementLocale {
   ZH_TW = "zh-TW",
   EN = "en",
@@ -6,6 +8,7 @@ export enum AnnouncementLocale {
 export class Announcement {
   private messages: Map<AnnouncementLocale, string> = new Map();
   private _publishedAt?: Date;
+  private _readableByRoles: Set<AttendeeRole> = new Set();
 
   constructor(
     public readonly id: string,
@@ -34,5 +37,17 @@ export class Announcement {
 
   get publishedAt(): Date | undefined {
     return this._publishedAt;
+  }
+
+  readableBy(...roles: AttendeeRole[]): void {
+    roles.forEach(role => this._readableByRoles.add(role));
+  }
+
+  isReadable(role: AttendeeRole): boolean {
+    return this._readableByRoles.has(role);
+  }
+
+  get roles(): AttendeeRole[] {
+    return Array.from(this._readableByRoles);
   }
 }

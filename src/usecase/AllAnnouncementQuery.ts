@@ -1,4 +1,5 @@
 import { AnnouncementListPresenter, AnnouncementRepository, AttendeeRepository } from "@/usecase/interface";
+import { AttendeeRole } from "@/entity/Attendee";
 
 export class AllAnnouncementQuery {
   constructor(
@@ -8,17 +9,17 @@ export class AllAnnouncementQuery {
   ) {}
 
   async execute(token?: string): Promise<void> {
-    let roles = ["audience"]; // Default role for no token or nonexistent token
+    let role = AttendeeRole.AUDIENCE; // Default role for no token or nonexistent token
     
     if (token) {
       const attendee = await this.attendeeRepository.findAttendeeByToken(token);
       if (attendee) {
-        // TODO: Get role from attendee, for now hardcode staff role
-        roles = ["staff", "audience"];
+        // Use the attendee's actual role
+        role = attendee.role;
       }
     }
 
-    const announcements = await this.announcementRepository.findAnnouncementsByRoles(roles);
+    const announcements = await this.announcementRepository.findAnnouncementsByRole(role);
     
     // Sort by publication time in descending order
     announcements
