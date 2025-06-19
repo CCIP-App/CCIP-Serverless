@@ -53,6 +53,12 @@ CCIP Serverless is the serverless OPass backend built on Cloudflare Workers with
 - `src/infra/EventDatabase.ts` - Durable Object for database operations
 - `src/db/schema.ts` - Drizzle database schema definitions
 
+**Entity Layer**:
+
+- `src/entity/` - Pure domain objects with business logic
+- No framework dependencies or external imports
+- Self-contained with all related behavior
+
 **Repository Pattern**:
 
 - `src/repository/DoAttendeeRepository.ts` - Attendee data access layer
@@ -63,6 +69,12 @@ CCIP Serverless is the serverless OPass backend built on Cloudflare Workers with
 - `src/usecase/` - Business logic and use case implementations
 - `src/usecase/interface.ts` - Repository interfaces and dependency injection tokens
 - Use cases are plain classes without @injectable decorator (entities and use cases have no dependencies)
+
+**Presenter Layer**:
+
+- `src/presenter/` - Output formatters that define API response schemas
+- Convert domain entities to API-specific data structures
+- Implement presenter interfaces defined in use case layer
 
 **API Controllers**:
 
@@ -130,34 +142,109 @@ async findByToken(token: string): Promise<Schema | null> {
 }
 ```
 
-### Entity and Use Case Rules
+### Clean Architecture Principles
 
-**Entities and Use Cases are Framework-Free:**
+**CCIP Serverless follows Clean Architecture with strict layer separation:**
 
-- **Entities** (`src/entity/`): Pure domain objects with no dependencies
-- **Use Cases** (`src/usecase/`): Business logic classes with constructor injection only
-- **NO DI decorators**: Never use `@injectable` or `@inject` in entities or use cases
-- **Controller responsibility**: Controllers resolve dependencies and manually create use case instances
+#### Layer Structure
+
+1. **Entities** (`src/entity/`): Pure domain objects with business rules
+2. **Use Cases** (`src/usecase/`): Application business logic
+3. **Interface Adapters** (`src/presenter/`, `src/repository/`): Convert data between layers
+4. **Frameworks & Drivers** (`src/handler/`, `src/infra/`): External concerns
+
+#### Entity Layer Rules
+
+- **Pure domain objects**: No framework dependencies or external imports
+- **Business rules only**: Core domain logic and invariants
+- **Self-contained**: All behavior related to the entity
 
 ```typescript
-// ❌ Wrong - Don't use DI decorators in use cases
-export class GetProfile {
-  constructor(
-    @inject(AttendeeRepositoryToken)  // ❌ Never do this
-    private readonly attendeeRepository: AttendeeRepository,
-  ) {}
+// ✅ Correct - Pure domain entity
+export class Announcement {
+  private messages: Map<AnnouncementLocale, string> = new Map();
+  private _publishedAt?: Date;
+
+  constructor(public readonly id: string, public readonly uri: string) {}
+
+  setMessage(locale: AnnouncementLocale, content: string): void {
+    this.messages.set(locale, content);
+  }
+
+  publish(time: Date): void {
+    this._publishedAt = time;
+  }
+
+  get publishedAt(): Date | undefined {
+    return this._publishedAt;
+  }
+}
+```
+
+#### Use Case Layer Rules
+
+- **Application logic**: Orchestrate entities and repositories
+- **Framework-free**: No DI decorators, pure constructor injection
+- **Presenter pattern**: Use presenters for output formatting instead of returning data directly
+
+```typescript
+// ✅ Correct - Use case with presenter pattern
+export class AllAnnouncementQuery {
+  constructor(private readonly presenter: AnnouncementListPresenter) {}
+
+  async execute(token?: string): Promise<void> {
+    // Business logic here
+    // Call presenter.addAnnouncement() for each result
+  }
 }
 
-// ✅ Correct - Pure constructor injection
-export class GetProfile {
-  constructor(private readonly attendeeRepository: AttendeeRepository) {}
+// ❌ Wrong - Use case returning data directly
+export class AllAnnouncementQuery {
+  async execute(token?: string): Promise<AnnouncementData[]> {
+    return []; // Don't return API-specific data
+  }
 }
+```
 
-// ✅ Controller handles DI
+#### Presenter Pattern
+
+- **API schema definition**: Presenters define output format, not use cases
+- **Data transformation**: Convert domain entities to API responses
+- **Layer separation**: Keep domain logic separate from presentation concerns
+
+```typescript
+// ✅ Correct - Presenter defines API schema
+export class JsonAnnouncementListPresenter implements AnnouncementListPresenter {
+  private announcements: Announcement[] = [];
+
+  addAnnouncement(announcement: Announcement): void {
+    this.announcements.push(announcement);
+  }
+
+  toJson(): AnnouncementData[] {
+    return this.announcements.map((announcement) => ({
+      datetime: announcement.publishedAt ? Math.floor(announcement.publishedAt.getTime() / 1000) : 0,
+      msgEn: announcement.getMessage(AnnouncementLocale.EN) || "",
+      msgZh: announcement.getMessage(AnnouncementLocale.ZH_TW) || "",
+      uri: announcement.uri,
+    }));
+  }
+}
+```
+
+#### Controller Integration
+
+- **Dependency resolution**: Controllers handle all DI and object creation
+- **Use case orchestration**: Create presenters and inject into use cases
+- **Response formatting**: Get final output from presenters
+
+```typescript
+// ✅ Correct - Controller orchestrates clean architecture
 async handle(c: Context<{ Bindings: Env }>) {
-  const attendeeRepository = container.resolve(AttendeeRepositoryToken);
-  const getProfile = new GetProfile(attendeeRepository);  // Manual creation
-  const result = await getProfile.execute(token);
+  const presenter = new JsonAnnouncementListPresenter();
+  const useCase = new AllAnnouncementQuery(presenter);
+  await useCase.execute(query.token);
+  return c.json(presenter.toJson());
 }
 ```
 
