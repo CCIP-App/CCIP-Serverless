@@ -12,7 +12,9 @@ export class LandingController extends BaseController {
     tags: ["Attendee"],
     request: {
       query: z.object({
-        token: z.string({ message: "token required" }).describe("The attendee token"),
+        token: z
+          .string({ message: "token required" })
+          .describe("The attendee token"),
       }),
     },
     responses: {
