@@ -1,4 +1,5 @@
 import { Attendee } from "@/entity/Attendee";
+import { Announcement } from "@/entity/Announcement";
 
 export const AttendeeRepositoryToken = Symbol("AttendeeRepository");
 
@@ -8,6 +9,6 @@ export interface AttendeeRepository {
 
 export const AnnouncementListPresenterToken = Symbol("AnnouncementListPresenter");
 
-export interface AnnouncementListPresenter<T = unknown> {
-  addAnnouncement(announcement: T): void;
+export interface AnnouncementListPresenter {
+  addAnnouncement(announcement: Announcement): void;
 }
