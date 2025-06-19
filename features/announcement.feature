@@ -1,4 +1,3 @@
-@wip
 Feature: Announcement
   Scenario: GET /announcement without any announcements populated
     When I make a GET request to "/announcement"
@@ -7,6 +6,7 @@ Feature: Announcement
       """
       []
       """
+  @wip
   Scenario: GET /announcement with token returns announcements based on token owner's role, ordered by time announced in descending order
     Given there have some attendees
       | token                                | event_id   | role  | metadata                                            | display_name | first_used_at             |
@@ -35,6 +35,7 @@ Feature: Announcement
       ]
       """
     And the response status should be 200
+  @wip
   Scenario: GET /announcement with nonexistent token returns announcements for audiences, ordered by time announced in descending order
     Given there are some announcements
       | id                                   | announced_at              | message                                             | uri                                           | roles                 |
@@ -60,6 +61,7 @@ Feature: Announcement
         }
       ]
       """
+  @wip
   Scenario: GET /announcement without token returns announcements for audience, ordered by time announced in descending order
     Given there are some announcements
       | id                                   | announced_at              | message                                             | uri                                           | roles        |
@@ -85,6 +87,7 @@ Feature: Announcement
         }
       ]
       """
+  @wip
   Scenario: POST /announcement for audience
     When I make a POST request to "/announcement":
       """
