@@ -1,4 +1,5 @@
 import { AllAnnouncementQuery } from "@/usecase/AllAnnouncementQuery";
+import { JsonAnnouncementListPresenter } from "@/presenter/JsonAnnouncementListPresenter";
 import { OpenAPIRouteSchema } from "chanfana";
 import { Context } from "hono";
 import { z } from "zod";
@@ -36,9 +37,10 @@ export class ListAnnouncementController extends BaseController {
     const data = await this.getValidatedData<typeof this.schema>();
     const query = data.query as unknown as { token?: string };
 
-    const allAnnouncementQuery = new AllAnnouncementQuery();
-    const announcements = await allAnnouncementQuery.execute(query.token);
+    const presenter = new JsonAnnouncementListPresenter();
+    const allAnnouncementQuery = new AllAnnouncementQuery(presenter);
+    await allAnnouncementQuery.execute(query.token);
 
-    return c.json(announcements);
+    return c.json(presenter.toJson());
   }
 }

@@ -1,13 +1,10 @@
-export type AnnouncementResult = {
-  datetime: number;
-  msgEn: string;
-  msgZh: string;
-  uri: string;
-};
+import { AnnouncementListPresenter } from "@/usecase/interface";
 
 export class AllAnnouncementQuery {
-  async execute(token?: string): Promise<AnnouncementResult[]> {
+  constructor(private readonly presenter: AnnouncementListPresenter) {}
+
+  async execute(token?: string): Promise<void> {
     // For now, just return empty array for the first scenario
-    return [];
+    // In the future, query announcements and call presenter.addAnnouncement() for each
   }
 }
