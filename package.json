@@ -8,6 +8,7 @@
     "deploy": "$npm_execpath run build && wrangler deploy",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
+    "format": "prettier --write .",
     "e2e": "cucumber-js",
     "cf-typegen": "wrangler types",
     "gen:migration": "drizzle-kit generate"

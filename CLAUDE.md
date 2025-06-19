@@ -18,6 +18,7 @@ CCIP Serverless is the serverless OPass backend built on Cloudflare Workers with
 
 - `pnpm lint` - Run ESLint on src directory
 - `pnpm lint:fix` - Run ESLint with auto-fix
+- `pnpm format` - Run Prettier to format all files
 
 ### Testing
 
@@ -71,6 +72,17 @@ Current schema includes:
 ### Path Aliases
 
 - `@/*` maps to `src/*` - use absolute imports for better maintainability
+
+## Development Workflow
+
+### Required Commands After Changes
+
+**IMPORTANT**: After making code changes, you MUST run these commands in order:
+
+1. `pnpm format` - Format code with Prettier
+2. `pnpm e2e` - Run BDD tests to verify functionality
+
+This ensures code consistency and prevents breaking existing functionality.
 
 ## Development Patterns
 
