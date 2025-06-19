@@ -1,22 +1,21 @@
-import { RpcTarget } from "cloudflare:workers";
-import { DrizzleSqliteDODatabase } from "drizzle-orm/durable-sqlite";
+import { DatabaseConnector } from "@/infra/DatabaseConnector";
+import { EventDatabase } from "@/infra/EventDatabase";
+import { sql } from "drizzle-orm";
 
-import * as Schema from "@/db/schema";
+type AttendeeSchema = {
+  token: string;
+  display_name: string;
+  first_used_at: number;
+};
 
-export class DoAttendeeRepository extends RpcTarget {
-  constructor(
-    private readonly connection: DrizzleSqliteDODatabase<typeof Schema>,
-  ) {
-    super();
-  }
+export class DoAttendeeRepository {
+  constructor(private readonly connection: DatabaseConnector<EventDatabase>) {}
 
-  async findAttendeeByToken(token: string) {
-    return this.connection.query.attendees.findFirst({
-      where: (attendee, { eq }) => eq(attendee.token, token),
-    });
-  }
+  async findAttendeeByToken(token: string): Promise<AttendeeSchema | null> {
+    const res = (await this.connection.executeAll(sql`
+      SELECT * FROM attendees WHERE token = ${token} LIMIT 1
+    `)) as AttendeeSchema[];
 
-  async save(attendee: { token: string; displayName: string }) {
-    return this.connection.insert(Schema.attendees).values(attendee);
+    return res.length > 0 ? res[0] : null;
   }
 }

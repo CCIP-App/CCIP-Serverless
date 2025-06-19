@@ -22,8 +22,8 @@ export class DatabaseConnector<
   }
 
   async executeAll<T>(wrapper: SQLWrapper): Promise<T[]> {
-    const inlineSql = wrapper.getSQL().inlineParams();
-    const { sql } = this.dialect.sqlToQuery(inlineSql);
+    const theSQL = wrapper.getSQL();
+    const { sql } = this.dialect.sqlToQuery(theSQL.inlineParams());
 
     return this.database.executeAll(sql);
   }

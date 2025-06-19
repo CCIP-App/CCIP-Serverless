@@ -1,3 +1,5 @@
+import { DatabaseConnector } from "@/infra/DatabaseConnector";
+import { DoAttendeeRepository } from "@/repository/DoAttendeeRepository";
 import { OpenAPIRoute, OpenAPIRouteSchema } from "chanfana";
 import { env } from "cloudflare:workers";
 import { Context, Env } from "hono";
@@ -33,14 +35,12 @@ export class LandingController extends OpenAPIRoute {
     const data = await this.getValidatedData<typeof this.schema>();
     const query = data.query as unknown as { token: string };
 
-    const id = env.EVENT_DATABASE.idFromName("ccip-serverless");
-    const stub = env.EVENT_DATABASE.get(id);
-
-    const repository = stub.getAttendeeRepository();
+    const conn = DatabaseConnector.build(env.EVENT_DATABASE, "ccip-serverless");
+    const repository = new DoAttendeeRepository(conn);
     const attendee = await repository.findAttendeeByToken(query.token);
 
     return c.json({
-      nickname: attendee?.displayName || "Unknown Attendee",
+      nickname: attendee?.display_name || "Unknown Attendee",
     });
   }
 }
