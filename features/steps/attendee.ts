@@ -8,9 +8,12 @@ Given(
   async function (this: World, dataTable: DataTable) {
     const conn = await this.getDatabase();
 
-    dataTable.hashes().forEach(async (row) => {
-      const insertQuery = sql`INSERT INTO attendees (token, display_name) VALUES (${row.token}, ${row.display_name})`;
+    for (const row of dataTable.hashes()) {
+      const insertQuery = sql`
+        INSERT INTO attendees (token, display_name, role) 
+        VALUES (${row.token}, ${row.display_name}, ${row.role || "audience"})
+      `;
       await conn.executeAll(insertQuery);
-    });
+    }
   },
 );

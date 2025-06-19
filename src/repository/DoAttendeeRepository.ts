@@ -1,4 +1,4 @@
-import { Attendee } from "@/entity/Attendee";
+import { Attendee, AttendeeRole } from "@/entity/Attendee";
 import { DatabaseConnector } from "@/infra/DatabaseConnector";
 import { EventDatabase } from "@/infra/EventDatabase";
 import { AttendeeRepository } from "@/usecase/interface";
@@ -8,6 +8,7 @@ type AttendeeSchema = {
   token: string;
   display_name: string;
   first_used_at: number;
+  role: string;
 };
 
 export class DoAttendeeRepository implements AttendeeRepository {
@@ -22,6 +23,9 @@ export class DoAttendeeRepository implements AttendeeRepository {
   }
 
   private mapToEntity(row: AttendeeSchema): Attendee {
-    return new Attendee(row.token, row.display_name, row.first_used_at);
+    const attendee = new Attendee(row.token, row.display_name, row.first_used_at);
+    const role = row.role === "staff" ? AttendeeRole.STAFF : AttendeeRole.AUDIENCE;
+    attendee.setRole(role);
+    return attendee;
   }
 }
