@@ -4,7 +4,7 @@ import {
   AttendeeRepositoryToken,
 } from "@/usecase/interface";
 import { OpenAPIRouteSchema } from "chanfana";
-import { Context, Env } from "hono";
+import { Context } from "hono";
 import { container } from "tsyringe";
 import { z } from "zod";
 import { BaseController } from "./BaseController";
@@ -44,7 +44,7 @@ export class LandingController extends BaseController {
     },
   } as OpenAPIRouteSchema;
 
-  async handle(c: Context<Env>) {
+  async handle(c: Context<{ Bindings: Env }>) {
     const data = await this.getValidatedData<typeof this.schema>();
     const query = data.query as unknown as { token: string };
 
