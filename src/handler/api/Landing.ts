@@ -1,17 +1,18 @@
 import { DatabaseConnector } from "@/infra/DatabaseConnector";
 import { DoAttendeeRepository } from "@/repository/DoAttendeeRepository";
-import { OpenAPIRoute, OpenAPIRouteSchema } from "chanfana";
+import { OpenAPIRouteSchema } from "chanfana";
 import { env } from "cloudflare:workers";
 import { Context, Env } from "hono";
 import { z } from "zod";
+import { BaseController } from "./BaseController";
 
-export class LandingController extends OpenAPIRoute {
+export class LandingController extends BaseController {
   schema = {
     summary: "Get attendee display name",
     tags: ["Attendee"],
     request: {
       query: z.object({
-        token: z.string().describe("The attendee token"),
+        token: z.string({ message: "token required" }).describe("The attendee token"),
       }),
     },
     responses: {
@@ -27,6 +28,13 @@ export class LandingController extends OpenAPIRoute {
       },
       "400": {
         description: "Missing or invalid token",
+        content: {
+          "application/json": {
+            schema: z.object({
+              message: z.string().describe("Error message"),
+            }),
+          },
+        },
       },
     },
   } as OpenAPIRouteSchema;
@@ -39,8 +47,12 @@ export class LandingController extends OpenAPIRoute {
     const repository = new DoAttendeeRepository(conn);
     const attendee = await repository.findAttendeeByToken(query.token);
 
+    if (!attendee) {
+      return c.json({ message: "invalid token" }, 400);
+    }
+
     return c.json({
-      nickname: attendee?.displayName || "Unknown Attendee",
+      nickname: attendee.displayName,
     });
   }
 }

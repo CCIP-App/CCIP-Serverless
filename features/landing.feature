@@ -11,7 +11,6 @@ Feature: Landing
 				"nickname": "Aotoki"
 			}
 			"""
-	@wip
 	Scenario: GET /landing without token
 		When I make a GET request to "/landing"
 		Then the response status should be 400
@@ -21,7 +20,6 @@ Feature: Landing
 				"message": "token required"
 			}
 			"""
-	@wip
 	Scenario: GET /landing with non exists token
 		When I make a GET request to "/landing?token=79fd7131-f46e-4335-8d0c-ac1fa551288b"
 		Then the response status should be 400
