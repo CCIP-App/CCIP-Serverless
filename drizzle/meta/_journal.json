@@ -15,6 +15,13 @@
       "when": 1750338806637,
       "tag": "0001_deep_orphan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1750345026253,
+      "tag": "0002_tired_purifiers",
+      "breakpoints": true
     }
   ]
 }
