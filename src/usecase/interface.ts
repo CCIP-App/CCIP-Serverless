@@ -7,6 +7,12 @@ export interface AttendeeRepository {
   findAttendeeByToken(token: string): Promise<Attendee | null>;
 }
 
+export const AnnouncementRepositoryToken = Symbol("AnnouncementRepository");
+
+export interface AnnouncementRepository {
+  findAnnouncementsByRoles(roles: string[]): Promise<Announcement[]>;
+}
+
 export const AnnouncementListPresenterToken = Symbol("AnnouncementListPresenter");
 
 export interface AnnouncementListPresenter {

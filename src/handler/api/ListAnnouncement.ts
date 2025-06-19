@@ -1,5 +1,8 @@
 import { AllAnnouncementQuery } from "@/usecase/AllAnnouncementQuery";
 import { JsonAnnouncementListPresenter } from "@/presenter/JsonAnnouncementListPresenter";
+import { HardcodedAnnouncementRepository } from "@/repository/HardcodedAnnouncementRepository";
+import { DoAttendeeRepository } from "@/repository/DoAttendeeRepository";
+import { DatabaseConnector } from "@/infra/DatabaseConnector";
 import { OpenAPIRouteSchema } from "chanfana";
 import { Context } from "hono";
 import { z } from "zod";
@@ -38,7 +41,15 @@ export class ListAnnouncementController extends BaseController {
     const query = data.query as unknown as { token?: string };
 
     const presenter = new JsonAnnouncementListPresenter();
-    const allAnnouncementQuery = new AllAnnouncementQuery(presenter);
+    const announcementRepository = new HardcodedAnnouncementRepository();
+    const attendeeConnection = DatabaseConnector.build(c.env.EVENT_DATABASE, "ccip-serverless");
+    const attendeeRepository = new DoAttendeeRepository(attendeeConnection);
+    
+    const allAnnouncementQuery = new AllAnnouncementQuery(
+      presenter,
+      announcementRepository,
+      attendeeRepository
+    );
     await allAnnouncementQuery.execute(query.token);
 
     return c.json(presenter.toJson());
