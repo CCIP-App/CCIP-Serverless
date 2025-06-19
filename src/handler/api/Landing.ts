@@ -40,7 +40,7 @@ export class LandingController extends OpenAPIRoute {
     const attendee = await repository.findAttendeeByToken(query.token);
 
     return c.json({
-      nickname: attendee?.display_name || "Unknown Attendee",
+      nickname: attendee?.displayName || "Unknown Attendee",
     });
   }
 }

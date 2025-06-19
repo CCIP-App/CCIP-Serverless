@@ -9,24 +9,29 @@ CCIP Serverless is the serverless OPass backend built on Cloudflare Workers with
 ## Development Commands
 
 ### Build & Development
+
 - `pnpm dev` - Start development server with Vite
 - `pnpm build` - Build the project for production
 - `pnpm deploy` - Build and deploy to Cloudflare Workers
 
 ### Code Quality
+
 - `pnpm lint` - Run ESLint on src directory
 - `pnpm lint:fix` - Run ESLint with auto-fix
 
 ### Testing
+
 - `pnpm e2e` - Run Cucumber.js BDD tests
 
 ### Database & Code Generation
+
 - `pnpm gen:migration` - Generate Drizzle ORM migrations
 - `pnpm cf-typegen` - Generate Cloudflare Worker types
 
 ## Architecture
 
 ### Technology Stack
+
 - **Runtime**: Cloudflare Workers with Durable Objects
 - **Framework**: Hono.js with JSX runtime
 - **Database**: SQLite via Drizzle ORM with Durable Objects storage
@@ -37,44 +42,57 @@ CCIP Serverless is the serverless OPass backend built on Cloudflare Workers with
 ### Key Components
 
 **Entry Points**:
+
 - `src/index.tsx` - Main application entry with Hono app setup
 - `src/renderer.tsx` - JSX renderer configuration
 
 **Database Layer**:
+
 - `src/infra/DatabaseConnector.ts` - Database connection abstraction pattern
 - `src/infra/EventDatabase.ts` - Durable Object for database operations
 - `src/db/schema.ts` - Drizzle database schema definitions
 
 **Repository Pattern**:
+
 - `src/repository/DoAttendeeRepository.ts` - Attendee data access layer
 - Uses DatabaseConnector for consistent data access
 
 **API Controllers**:
+
 - `src/handler/api/` - API route controllers using Chanfana OpenAPI
 - Controllers extend OpenAPIRoute base class
 
 ### Database Schema
+
 Current schema includes:
+
 - **attendees**: `token` (PK), `display_name`, `first_used_at`
 
 ### Path Aliases
+
 - `@/*` maps to `src/*` - use absolute imports for better maintainability
 
 ## Development Patterns
 
 ### Database Access Pattern
+
 Use DatabaseConnector.build() to create connections:
+
 ```typescript
 const conn = DatabaseConnector.build(env.EVENT_DATABASE, "ccip-serverless");
 const repository = new DoAttendeeRepository(conn);
 ```
 
 ### API Controller Pattern
+
 Controllers extend OpenAPIRoute and use schema validation:
+
 ```typescript
 export class ExampleController extends OpenAPIRoute {
-  schema = { /* OpenAPI schema */ };
-  
+  schema = {
+    /* OpenAPI schema */
+  };
+
   async handle(c: Context<Env>, env: Env, ctx: ExecutionContext, data: any) {
     // Implementation
   }
@@ -82,7 +100,9 @@ export class ExampleController extends OpenAPIRoute {
 ```
 
 ### Repository Pattern
+
 Repositories use DatabaseConnector and return typed results:
+
 ```typescript
 async findByToken(token: string): Promise<Schema | null> {
   const res = await this.connection.executeAll(sql`SELECT * FROM table WHERE token = ${token}`);
@@ -99,6 +119,7 @@ async findByToken(token: string): Promise<Schema | null> {
 ## Testing
 
 BDD testing with Cucumber.js:
+
 - Feature files in `features/` directory
 - Step definitions in `features/steps/`
 - World setup in `features/support/World.ts`

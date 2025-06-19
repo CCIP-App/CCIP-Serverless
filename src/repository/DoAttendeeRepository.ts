@@ -1,3 +1,4 @@
+import { Attendee } from "@/entity/Attendee";
 import { DatabaseConnector } from "@/infra/DatabaseConnector";
 import { EventDatabase } from "@/infra/EventDatabase";
 import { sql } from "drizzle-orm";
@@ -11,11 +12,15 @@ type AttendeeSchema = {
 export class DoAttendeeRepository {
   constructor(private readonly connection: DatabaseConnector<EventDatabase>) {}
 
-  async findAttendeeByToken(token: string): Promise<AttendeeSchema | null> {
+  async findAttendeeByToken(token: string): Promise<Attendee | null> {
     const res = (await this.connection.executeAll(sql`
       SELECT * FROM attendees WHERE token = ${token} LIMIT 1
     `)) as AttendeeSchema[];
 
-    return res.length > 0 ? res[0] : null;
+    return res.length > 0 ? this.mapToEntity(res[0]) : null;
+  }
+
+  private mapToEntity(row: AttendeeSchema): Attendee {
+    return new Attendee(row.token, row.display_name, row.first_used_at);
   }
 }
