@@ -13,13 +13,15 @@ Given(
     for (const row of dataTable.hashes()) {
       // Parse the message JSON
       const message = JSON.parse(row.message);
-      
+
       // Parse the roles array
       const roles = JSON.parse(row.roles);
-      
+
       // Convert announced_at to timestamp
-      const announcedAt = Math.floor(new Date(row.announced_at).getTime() / 1000);
-      
+      const announcedAt = Math.floor(
+        new Date(row.announced_at).getTime() / 1000,
+      );
+
       const insertQuery = sql`
         INSERT INTO announcements (announced_at, message, uri, roles)
         VALUES (

@@ -1,5 +1,5 @@
-import { Attendee, AttendeeRole } from "@/entity/Attendee";
 import { Announcement } from "@/entity/Announcement";
+import { Attendee, AttendeeRole } from "@/entity/Attendee";
 
 export const AttendeeRepositoryToken = Symbol("AttendeeRepository");
 
@@ -13,7 +13,9 @@ export interface AnnouncementRepository {
   findAnnouncementsByRole(role: AttendeeRole): Promise<Announcement[]>;
 }
 
-export const AnnouncementListPresenterToken = Symbol("AnnouncementListPresenter");
+export const AnnouncementListPresenterToken = Symbol(
+  "AnnouncementListPresenter",
+);
 
 export interface AnnouncementListPresenter {
   addAnnouncement(announcement: Announcement): void;

@@ -1,5 +1,9 @@
-import { AnnouncementListPresenter, AnnouncementRepository, AttendeeRepository } from "@/usecase/interface";
 import { AttendeeRole } from "@/entity/Attendee";
+import {
+  AnnouncementListPresenter,
+  AnnouncementRepository,
+  AttendeeRepository,
+} from "@/usecase/interface";
 
 export class AllAnnouncementQuery {
   constructor(
@@ -10,7 +14,7 @@ export class AllAnnouncementQuery {
 
   async execute(token?: string): Promise<void> {
     let role = AttendeeRole.AUDIENCE; // Default role for no token or nonexistent token
-    
+
     if (token) {
       const attendee = await this.attendeeRepository.findAttendeeByToken(token);
       if (attendee) {
@@ -19,8 +23,9 @@ export class AllAnnouncementQuery {
       }
     }
 
-    const announcements = await this.announcementRepository.findAnnouncementsByRole(role);
-    
+    const announcements =
+      await this.announcementRepository.findAnnouncementsByRole(role);
+
     // Sort by publication time in descending order
     announcements
       .sort((a, b) => {
@@ -28,6 +33,6 @@ export class AllAnnouncementQuery {
         const bTime = b.publishedAt?.getTime() || 0;
         return bTime - aTime;
       })
-      .forEach(announcement => this.presenter.addAnnouncement(announcement));
+      .forEach((announcement) => this.presenter.addAnnouncement(announcement));
   }
 }

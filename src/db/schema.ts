@@ -5,7 +5,9 @@ export const attendees = sqliteTable("attendees", {
   token: text("token").primaryKey(),
   displayName: text("display_name"),
   firstUsedAt: integer("first_used_at", { mode: "timestamp" }),
-  role: text("role", { enum: ["staff", "audience"] }).notNull().default("audience"),
+  role: text("role", { enum: ["staff", "audience"] })
+    .notNull()
+    .default("audience"),
 });
 
 export const announcements = sqliteTable("announcements", {

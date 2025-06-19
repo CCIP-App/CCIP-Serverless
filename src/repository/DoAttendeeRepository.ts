@@ -23,8 +23,13 @@ export class DoAttendeeRepository implements AttendeeRepository {
   }
 
   private mapToEntity(row: AttendeeSchema): Attendee {
-    const attendee = new Attendee(row.token, row.display_name, row.first_used_at);
-    const role = row.role === "staff" ? AttendeeRole.STAFF : AttendeeRole.AUDIENCE;
+    const attendee = new Attendee(
+      row.token,
+      row.display_name,
+      row.first_used_at,
+    );
+    const role =
+      row.role === "staff" ? AttendeeRole.STAFF : AttendeeRole.AUDIENCE;
     attendee.setRole(role);
     return attendee;
   }

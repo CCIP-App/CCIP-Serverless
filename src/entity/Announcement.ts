@@ -24,7 +24,10 @@ export class Announcement {
   }
 
   allMessages(): Record<AnnouncementLocale, string> {
-    const result: Record<AnnouncementLocale, string> = {} as Record<AnnouncementLocale, string>;
+    const result: Record<AnnouncementLocale, string> = {} as Record<
+      AnnouncementLocale,
+      string
+    >;
     for (const [locale, content] of this.messages) {
       result[locale] = content;
     }
@@ -40,7 +43,7 @@ export class Announcement {
   }
 
   readableBy(...roles: AttendeeRole[]): void {
-    roles.forEach(role => this._readableByRoles.add(role));
+    roles.forEach((role) => this._readableByRoles.add(role));
   }
 
   isReadable(role: AttendeeRole): boolean {
