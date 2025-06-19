@@ -17,7 +17,7 @@ export class JsonAnnouncementListPresenter implements AnnouncementListPresenter 
 
   toJson(): AnnouncementData[] {
     return this.announcements.map((announcement) => ({
-      datetime: 0, // TODO: Add datetime to Announcement entity
+      datetime: announcement.publishedAt ? Math.floor(announcement.publishedAt.getTime() / 1000) : 0,
       msgEn: announcement.getMessage(AnnouncementLocale.EN) || "",
       msgZh: announcement.getMessage(AnnouncementLocale.ZH_TW) || "",
       uri: announcement.uri,

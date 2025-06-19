@@ -5,6 +5,7 @@ export enum AnnouncementLocale {
 
 export class Announcement {
   private messages: Map<AnnouncementLocale, string> = new Map();
+  private _publishedAt?: Date;
 
   constructor(
     public readonly id: string,
@@ -19,11 +20,19 @@ export class Announcement {
     return this.messages.get(locale);
   }
 
-  allMessages(): Record<string, string> {
-    const result: Record<string, string> = {};
+  allMessages(): Record<AnnouncementLocale, string> {
+    const result: Record<AnnouncementLocale, string> = {} as Record<AnnouncementLocale, string>;
     for (const [locale, content] of this.messages) {
       result[locale] = content;
     }
     return result;
+  }
+
+  publish(time: Date): void {
+    this._publishedAt = time;
+  }
+
+  get publishedAt(): Date | undefined {
+    return this._publishedAt;
   }
 }
