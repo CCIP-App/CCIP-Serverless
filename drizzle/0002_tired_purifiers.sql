@@ -1,0 +1,1 @@
+ALTER TABLE `attendees` ADD `role` text DEFAULT 'audience' NOT NULL;
