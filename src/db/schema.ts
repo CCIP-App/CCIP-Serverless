@@ -8,6 +8,7 @@ export const attendees = sqliteTable("attendees", {
   role: text("role", { enum: ["staff", "audience"] })
     .notNull()
     .default("audience"),
+  metadata: text("metadata", { mode: "json" }).default("{}"),
 });
 
 export const announcements = sqliteTable("announcements", {
