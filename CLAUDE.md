@@ -107,16 +107,29 @@ This ensures code consistency and prevents breaking existing functionality.
 
 ### Database Access Pattern
 
-Use DatabaseConnector.build() to create connections:
+Database connections are managed through dependency injection:
 
 ```typescript
+// ✅ Correct - Container manages database connection
+export function configureContainer(env: Env) {
+  const dbConnection = DatabaseConnector.build(
+    env.EVENT_DATABASE,
+    "ccip-serverless",
+  );
+  container.register(DatabaseConnectionToken, { useValue: dbConnection });
+  container.register(AttendeeRepositoryToken, {
+    useClass: DoAttendeeRepository,
+  });
+}
+
+// ❌ Wrong - Manual connection creation in controllers
 const conn = DatabaseConnector.build(env.EVENT_DATABASE, "ccip-serverless");
 const repository = new DoAttendeeRepository(conn);
 ```
 
 ### API Controller Pattern
 
-Controllers extend OpenAPIRoute and use schema validation:
+Controllers extend OpenAPIRoute and use dependency injection:
 
 ```typescript
 export class ExampleController extends OpenAPIRoute {
@@ -125,20 +138,34 @@ export class ExampleController extends OpenAPIRoute {
   };
 
   async handle(c: Context<{ Bindings: Env }>) {
-    // Implementation
-    // Access environment via c.env
+    // ✅ Correct - Use container.resolve()
+    const repository = container.resolve<AttendeeRepository>(
+      AttendeeRepositoryToken,
+    );
+
+    // Implementation using resolved dependencies
   }
 }
 ```
 
 ### Repository Pattern
 
-Repositories use DatabaseConnector and return typed results:
+Repositories are injectable and use interface dependencies:
 
 ```typescript
-async findByToken(token: string): Promise<Schema | null> {
-  const res = await this.connection.executeAll(sql`SELECT * FROM table WHERE token = ${token}`);
-  return res.length > 0 ? res[0] : null;
+@injectable()
+export class DoAttendeeRepository implements AttendeeRepository {
+  constructor(
+    @inject(DatabaseConnectionToken)
+    private readonly connection: IDatabaseConnection,
+  ) {}
+
+  async findByToken(token: string): Promise<Schema | null> {
+    const res = await this.connection.executeAll(
+      sql`SELECT * FROM table WHERE token = ${token}`,
+    );
+    return res.length > 0 ? res[0] : null;
+  }
 }
 ```
 
@@ -255,9 +282,9 @@ async handle(c: Context<{ Bindings: Env }>) {
 }
 ```
 
-### Dependency Injection Token Policy
+### Dependency Injection Patterns
 
-**Always use symbols for dependency injection tokens:**
+**Use symbols for dependency injection tokens:**
 
 ```typescript
 // ✅ Correct - Symbol-based tokens
@@ -270,11 +297,51 @@ export interface AttendeeRepository {
 container.register("AttendeeRepository", { useValue: repository });
 ```
 
-**Token naming convention:**
+**Token and interface placement by layer:**
 
-- Interface: `AttendeeRepository`
-- Token: `AttendeeRepositoryToken`
-- Both defined in `src/usecase/interface.ts`
+- **Domain interfaces and tokens**: `src/usecase/interface.ts` (e.g., `AttendeeRepository`, `AttendeeRepositoryToken`)
+- **Infrastructure interfaces and tokens**: `src/infra/` (e.g., `IDatabaseConnection`, `DatabaseConnectionToken`)
+
+**Repository dependency injection:**
+
+```typescript
+// ✅ Correct - Injectable repository with interface dependency
+@injectable()
+export class DoAttendeeRepository implements AttendeeRepository {
+  constructor(
+    @inject(DatabaseConnectionToken)
+    private readonly connection: IDatabaseConnection,
+  ) {}
+}
+```
+
+**Container registration patterns:**
+
+```typescript
+// ✅ Correct - Register infrastructure dependencies as useValue
+container.register(DatabaseConnectionToken, { useValue: dbConnection });
+
+// ✅ Correct - Register repositories as useClass for DI
+container.register(AttendeeRepositoryToken, { useClass: DoAttendeeRepository });
+
+// ❌ Wrong - Manual instantiation bypasses DI
+container.register(AttendeeRepositoryToken, {
+  useValue: new DoAttendeeRepository(connection),
+});
+```
+
+**Controller dependency resolution:**
+
+```typescript
+// ✅ Correct - Use container.resolve() in controllers
+const attendeeRepository = container.resolve<AttendeeRepository>(
+  AttendeeRepositoryToken,
+);
+
+// ❌ Wrong - Manual instantiation in controllers
+const connection = DatabaseConnector.build(c.env.EVENT_DATABASE, "name");
+const attendeeRepository = new DoAttendeeRepository(connection);
+```
 
 ## Type System
 
