@@ -1,9 +1,12 @@
 import { Announcement, AnnouncementLocale } from "@/entity/Announcement";
 import { AttendeeRole } from "@/entity/Attendee";
-import { DatabaseConnector } from "@/infra/DatabaseConnector";
-import { EventDatabase } from "@/infra/EventDatabase";
+import {
+  DatabaseConnectionToken,
+  IDatabaseConnection,
+} from "@/infra/DatabaseConnection";
 import { AnnouncementRepository } from "@/usecase/interface";
 import { sql } from "drizzle-orm";
+import { inject, injectable } from "tsyringe";
 
 type AnnouncementSchema = {
   id: number;
@@ -13,8 +16,12 @@ type AnnouncementSchema = {
   roles: string[];
 };
 
+@injectable()
 export class DoAnnouncementRepository implements AnnouncementRepository {
-  constructor(private readonly connection: DatabaseConnector<EventDatabase>) {}
+  constructor(
+    @inject(DatabaseConnectionToken)
+    private readonly connection: IDatabaseConnection,
+  ) {}
 
   async findAnnouncementsByRole(role: AttendeeRole): Promise<Announcement[]> {
     const res = (await this.connection.executeAll(sql`

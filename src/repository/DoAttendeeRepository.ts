@@ -1,9 +1,12 @@
 import { Attendee, AttendeeRole } from "@/entity/Attendee";
-import { DatabaseConnector } from "@/infra/DatabaseConnector";
-import { EventDatabase } from "@/infra/EventDatabase";
+import {
+  DatabaseConnectionToken,
+  IDatabaseConnection,
+} from "@/infra/DatabaseConnection";
 import { AttendeeRepository } from "@/usecase/interface";
 import { createHash } from "crypto";
 import { sql } from "drizzle-orm";
+import { inject, injectable } from "tsyringe";
 
 type AttendeeSchema = {
   token: string;
@@ -12,8 +15,12 @@ type AttendeeSchema = {
   role: string;
 };
 
+@injectable()
 export class DoAttendeeRepository implements AttendeeRepository {
-  constructor(private readonly connection: DatabaseConnector<EventDatabase>) {}
+  constructor(
+    @inject(DatabaseConnectionToken)
+    private readonly connection: IDatabaseConnection,
+  ) {}
 
   async findAttendeeByToken(token: string): Promise<Attendee | null> {
     const res = (await this.connection.executeAll(sql`

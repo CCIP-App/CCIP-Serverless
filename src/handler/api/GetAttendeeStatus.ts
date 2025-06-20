@@ -1,9 +1,12 @@
-import { DatabaseConnector } from "@/infra/DatabaseConnector";
 import { JsonAttendeeStatusPresenter } from "@/presenter/JsonAttendeeStatusPresenter";
-import { DoAttendeeRepository } from "@/repository/DoAttendeeRepository";
 import { GetAttendeeStatusQuery } from "@/usecase/GetAttendeeStatusQuery";
+import {
+  AttendeeRepository,
+  AttendeeRepositoryToken,
+} from "@/usecase/interface";
 import { OpenAPIRouteSchema } from "chanfana";
 import { Context } from "hono";
+import { container } from "tsyringe";
 import { z } from "zod";
 import { BaseController } from "./BaseController";
 
@@ -44,11 +47,9 @@ export class GetAttendeeStatusController extends BaseController {
     };
 
     const presenter = new JsonAttendeeStatusPresenter();
-    const connection = DatabaseConnector.build(
-      c.env.EVENT_DATABASE,
-      "ccip-serverless",
+    const attendeeRepository = container.resolve<AttendeeRepository>(
+      AttendeeRepositoryToken,
     );
-    const attendeeRepository = new DoAttendeeRepository(connection);
 
     const getAttendeeStatusQuery = new GetAttendeeStatusQuery(
       attendeeRepository,

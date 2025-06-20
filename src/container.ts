@@ -1,17 +1,26 @@
+import { DatabaseConnectionToken } from "@/infra/DatabaseConnection";
 import { DatabaseConnector } from "@/infra/DatabaseConnector";
+import { DoAnnouncementRepository } from "@/repository/DoAnnouncementRepository";
 import { DoAttendeeRepository } from "@/repository/DoAttendeeRepository";
-import { AttendeeRepositoryToken } from "@/usecase/interface";
+import {
+  AnnouncementRepositoryToken,
+  AttendeeRepositoryToken,
+} from "@/usecase/interface";
 import { container } from "tsyringe";
 
 export function configureContainer(env: Env) {
-  // Create database connection
+  // Create and register database connection
   const dbConnection = DatabaseConnector.build(
     env.EVENT_DATABASE,
     "ccip-serverless",
   );
+  container.register(DatabaseConnectionToken, { useValue: dbConnection });
 
-  // Register repository implementation
+  // Register repository implementations
   container.register(AttendeeRepositoryToken, {
-    useValue: new DoAttendeeRepository(dbConnection),
+    useClass: DoAttendeeRepository,
+  });
+  container.register(AnnouncementRepositoryToken, {
+    useClass: DoAnnouncementRepository,
   });
 }
