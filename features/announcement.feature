@@ -8,8 +8,8 @@ Feature: Announcement
       """
   Scenario: GET /announcement with token returns announcements based on token owner's role, ordered by time announced in descending order
     Given there have some attendees
-      | token                                | event_id   | role  | metadata                                            | display_name | first_used_at             |
-      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | SITCON2023 | staff | {"_scenario_checkin": "2023-08-27 00:00:00 GMT+0" } | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
+      | token                                | role  | metadata                                            | display_name | first_used_at             |
+      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | staff | {"_scenario_checkin": "2023-08-27 00:00:00 GMT+0" } | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
     Given there are some announcements
       | id                                   | announced_at              | message                                             | uri                                           | roles                 |
       | 40422d68-405d-4142-979e-bce8003dcb18 | 2023-08-29 00:00:00 GMT+0 | { "en-US": "hello world 1", "zh-TW": "世界你好 1" } | https://testability.opass.app/announcements/1 | ["audience"]          |

@@ -2,12 +2,12 @@
 Feature: Puzzle Coupon
   Scenario: PUT /event/puzzle/coupon to redeem a puzzle coupon
     Given there have some attendees
-      | token                                | event_id | display_name |
-      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | SITCON   | Aotoki       |
+      | token                                | display_name |
+      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | Aotoki       |
     And there have some puzzle activity events
       | id                                   | type                | aggregate_id                         | version | payload                                | occurred_at         |
       | b44845bd-8bd2-428d-ad65-f6a619bf8a96 | AttendeeInitialized | f185f505-d8c0-43ce-9e7b-bb9e8909072d | 0       | { "displayName": "Aotoki" }            | 2023-09-10 20:48:00 |
-    When I make a PUT request to "/event/puzzle/coupon?token=f185f505-d8c0-43ce-9e7b-bb9e8909072d&event_id=SITCON":
+    When I make a PUT request to "/event/puzzle/coupon?token=f185f505-d8c0-43ce-9e7b-bb9e8909072d":
       """
       {}
       """
@@ -21,12 +21,12 @@ Feature: Puzzle Coupon
 
   Scenario: PUT /event/puzzle/coupon to redeem a puzzle coupon and status is updated
     Given there have some attendees
-      | token                                | event_id | display_name |
-      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | SITCON   | Aotoki       |
+      | token                                | display_name |
+      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | Aotoki       |
     And there have some puzzle activity events
       | id                                   | type                | aggregate_id                         | version | payload                                | occurred_at         |
       | b44845bd-8bd2-428d-ad65-f6a619bf8a96 | AttendeeInitialized | f185f505-d8c0-43ce-9e7b-bb9e8909072d | 0       | { "displayName": "Aotoki" }            | 2023-09-10 20:48:00 |
-    When I make a PUT request to "/event/puzzle/coupon?token=f185f505-d8c0-43ce-9e7b-bb9e8909072d&event_id=SITCON":
+    When I make a PUT request to "/event/puzzle/coupon?token=f185f505-d8c0-43ce-9e7b-bb9e8909072d":
       """
       {}
       """

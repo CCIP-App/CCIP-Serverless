@@ -2,8 +2,8 @@
 Feature: Useable Scenario
   Scenario: When scenario is used get status can see used time
     Given there have some attendees
-      | token                                | event_id   | role     | metadata                                            | display_name | first_used_at             |
-      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | SITCON2023 | audience | {"_scenario_checkin": "2023-08-27 00:00:00 GMT+0" } | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
+      | token                                | role     | metadata                                            | display_name | first_used_at             |
+      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience | {"_scenario_checkin": "2023-08-27 00:00:00 GMT+0" } | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
     And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
       """
       {
@@ -27,7 +27,6 @@ Feature: Useable Scenario
     Then the response json should be:
       """
       {
-        "event_id": "SITCON2023",
         "public_token": "041656f614f3b624ad8c7409c25db3b7e9a512ce",
         "user_id": "Aotoki",
         "first_use": 1692489600,
@@ -52,8 +51,8 @@ Feature: Useable Scenario
       And the response status should be 200
 	Scenario: When attendee try to use a unused scenario
 		Given there have some attendees
-      | token                                | event_id   | role     | metadata | display_name | first_used_at             |
-      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | SITCON2023 | audience |          | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
+      | token                                | role     | metadata | display_name | first_used_at             |
+      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience |          | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
     And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
       """
       {
@@ -78,8 +77,8 @@ Feature: Useable Scenario
 		And the response json should have property "scenario.checkin.used" is not null
 	Scenario: When attendee use checkin scenario and unlock welcom kit
     Given there have some attendees
-      | token                                | event_id   | role     | metadata | display_name | first_used_at             |
-      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | SITCON2023 | audience |          | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
+      | token                                | role     | metadata | display_name | first_used_at             |
+      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience |          | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
     And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
       """
 			{
@@ -120,7 +119,6 @@ Feature: Useable Scenario
     And the response json should be:
       """
       {
-        "event_id": "SITCON2023",
         "public_token": "041656f614f3b624ad8c7409c25db3b7e9a512ce",
         "user_id": "Aotoki",
         "first_use": 1692489600,
@@ -156,8 +154,8 @@ Feature: Useable Scenario
       """
 	Scenario: When attendee try to use a invisible scenario
 		Given there have some attendees
-			| token                                | event_id   | role     | metadata | display_name | first_used_at             |
-			| f185f505-d8c0-43ce-9e7b-bb9e8909072d | SITCON2023 | audience |          | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
+			| token                                | role     | metadata | display_name | first_used_at             |
+			| f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience |          | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
 		And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
 			"""
 			{
@@ -191,8 +189,8 @@ Feature: Useable Scenario
 			"""
 	Scenario: When attendee try to use a used scenario
     Given there have some attendees
-      | token                                | event_id   | role     | metadata                                            | display_name | first_used_at             |
-      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | SITCON2023 | audience | {"_scenario_checkin": "2023-08-27 00:00:00 GMT+0" } | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
+      | token                                | role     | metadata                                            | display_name | first_used_at             |
+      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience | {"_scenario_checkin": "2023-08-27 00:00:00 GMT+0" } | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
     And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
       """
       {

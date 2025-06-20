@@ -2,12 +2,12 @@
 Feature: Puzzle Deliverers
   Background:
     Given there have some booths
-      | token                                | name   | event_id |
-      | 30b546a6-4710-43c1-9556-421906f2afe1 | COSCUP | SITCON   |
-      | f05e5898-10e7-4e75-b64f-61d2d062e4f9 | SITCON | SITCON   |
+      | token                                | name   |
+      | 30b546a6-4710-43c1-9556-421906f2afe1 | COSCUP |
+      | f05e5898-10e7-4e75-b64f-61d2d062e4f9 | SITCON |
 
   Scenario: When I ask for deliverers I can see a list of booths
-    When I make a GET request to "/event/puzzle/deliverers?event_id=SITCON"
+    When I make a GET request to "/event/puzzle/deliverers"
     Then the response json should be:
       """
       [
@@ -35,7 +35,7 @@ Feature: Puzzle Deliverers
 
 
   Scenario: When I ask for deliverer which I owned and I can see the slug
-    When I make a GET request to "/event/puzzle/deliverer?event_id=SITCON&token=30b546a6-4710-43c1-9556-421906f2afe1"
+    When I make a GET request to "/event/puzzle/deliverer?token=30b546a6-4710-43c1-9556-421906f2afe1"
     Then the response json should be:
       """
       { "slug": "COSCUP" }

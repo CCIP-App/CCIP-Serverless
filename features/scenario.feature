@@ -2,8 +2,8 @@
 Feature: Scenario
   Scenario: A scenario configured for role then display it
     Given there have some attendees
-      | token                                | event_id   | role     | display_name | first_used_at             |
-      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | SITCON2023 | audience | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
+      | token                                | role     | display_name | first_used_at             |
+      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
     And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
       """
       {
@@ -25,7 +25,6 @@ Feature: Scenario
     And the response json should be:
       """
       {
-        "event_id": "SITCON2023",
         "public_token": "041656f614f3b624ad8c7409c25db3b7e9a512ce",
         "user_id": "Aotoki",
         "first_use": 1692489600,
@@ -49,8 +48,8 @@ Feature: Scenario
       """
   Scenario: A scenario configured but not matched attendee attribute
     Given there have some attendees
-      | token                                | event_id   | role     | metadata        | display_name | first_used_at             |
-      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | SITCON2023 | audience | {"講師票": "N"} | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
+      | token                                | role     | metadata        | display_name | first_used_at             |
+      | f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience | {"講師票": "N"} | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
     And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
       """
         {
@@ -101,7 +100,6 @@ Feature: Scenario
     And the response json should be:
       """
       {
-        "event_id": "SITCON2023",
         "public_token": "041656f614f3b624ad8c7409c25db3b7e9a512ce",
         "user_id": "Aotoki",
         "first_use": 1692489600,
@@ -127,8 +125,8 @@ Feature: Scenario
       """
   Scenario: A scenario configured with extra metadata attached
   	Given there have some attendees
-			| token                                | event_id   | role     | metadata                      | display_name | first_used_at             |
-			| f185f505-d8c0-43ce-9e7b-bb9e8909072d | SITCON2023 | audience | {"飲食": "葷"} | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
+			| token                                | role     | metadata                      | display_name | first_used_at             |
+			| f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience | {"飲食": "葷"} | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
 		And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
 			"""
 				{
@@ -154,7 +152,6 @@ Feature: Scenario
 		And the response json should be:
 			"""
 			{
-				"event_id": "SITCON2023",
         "public_token": "041656f614f3b624ad8c7409c25db3b7e9a512ce",
 				"user_id": "Aotoki",
 				"first_use": 1692489600,
