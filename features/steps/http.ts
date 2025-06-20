@@ -24,3 +24,21 @@ Then(
     expect(actualJson).toEqual(expectedJson);
   },
 );
+
+Then(
+  "the response json should have property {string} is not null",
+  async function (this: World, property: string) {
+    const actualJson = await this.lastResponse?.json();
+    expect(actualJson).toHaveProperty(property);
+    expect(actualJson[property]).not.toBeNull();
+  },
+);
+
+Then(
+  "the response json should have property {string} is null",
+  async function (this: World, property: string) {
+    const actualJson = await this.lastResponse?.json();
+    expect(actualJson).toHaveProperty(property);
+    expect(actualJson[property]).toBeNull();
+  },
+);

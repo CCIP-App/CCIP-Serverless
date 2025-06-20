@@ -27,6 +27,7 @@ export default class CcipServerlessWorld extends World {
       rootPath: ".wrangler/cucumber/ccip_serverless",
       modules: true,
       compatibilityDate: "2025-06-01",
+      compatibilityFlags: ["nodejs_compat"],
       durableObjects: {
         EVENT_DATABASE: {
           className: "EventDatabase",

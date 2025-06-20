@@ -5,11 +5,12 @@ export enum AttendeeRole {
 
 export class Attendee {
   private _role: AttendeeRole = AttendeeRole.AUDIENCE;
+  private _firstUsedAt: number | null = null;
 
   constructor(
     public readonly token: string,
     public readonly displayName: string,
-    public readonly firstUsedAt: number,
+    public readonly publicToken: string,
   ) {}
 
   setRole(role: AttendeeRole): void {
@@ -18,5 +19,15 @@ export class Attendee {
 
   get role(): AttendeeRole {
     return this._role;
+  }
+
+  get firstUsedAt(): number | null {
+    return this._firstUsedAt;
+  }
+
+  checkIn(time: Date): void {
+    if (!this._firstUsedAt) {
+      this._firstUsedAt = Math.floor(time.getTime() / 1000);
+    }
   }
 }

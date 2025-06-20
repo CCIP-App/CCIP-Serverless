@@ -5,6 +5,7 @@ export const AttendeeRepositoryToken = Symbol("AttendeeRepository");
 
 export interface AttendeeRepository {
   findAttendeeByToken(token: string): Promise<Attendee | null>;
+  save(attendee: Attendee): Promise<void>;
 }
 
 export const AnnouncementRepositoryToken = Symbol("AnnouncementRepository");
@@ -19,4 +20,10 @@ export const AnnouncementListPresenterToken = Symbol(
 
 export interface AnnouncementListPresenter {
   addAnnouncement(announcement: Announcement): void;
+}
+
+export const AttendeeStatusPresenterToken = Symbol("AttendeeStatusPresenter");
+
+export interface AttendeeStatusPresenter {
+  setAttendee(attendee: Attendee): void;
 }
