@@ -3,9 +3,12 @@ export enum AttendeeRole {
   AUDIENCE = "audience",
 }
 
+export type MetadataValue = string | number | boolean | null | undefined;
+
 export class Attendee {
   private _role: AttendeeRole = AttendeeRole.AUDIENCE;
   private _firstUsedAt: number | null = null;
+  private _metadata: Record<string, MetadataValue> = {};
 
   constructor(
     public readonly token: string,
@@ -29,5 +32,21 @@ export class Attendee {
     if (!this._firstUsedAt) {
       this._firstUsedAt = Math.floor(time.getTime() / 1000);
     }
+  }
+
+  setMetadata(key: string, value: MetadataValue): void {
+    this._metadata[key] = value;
+  }
+
+  getMetadata(key: string): MetadataValue {
+    return this._metadata[key];
+  }
+
+  get metadata(): Record<string, MetadataValue> {
+    return { ...this._metadata };
+  }
+
+  setAllMetadata(metadata: Record<string, MetadataValue>): void {
+    this._metadata = metadata || {};
   }
 }

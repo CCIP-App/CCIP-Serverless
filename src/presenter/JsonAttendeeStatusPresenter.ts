@@ -35,13 +35,6 @@ export class JsonAttendeeStatusPresenter implements AttendeeStatusPresenter {
   private getAttendeeAttributes(): Record<string, unknown> {
     if (!this.attendee) return {};
 
-    if (
-      this.attendee.role === "staff" &&
-      this.attendee.displayName === "Aotoki"
-    ) {
-      return { title: "文創組組長" };
-    }
-
-    return {};
+    return this.attendee.metadata || {};
   }
 }

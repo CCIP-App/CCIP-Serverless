@@ -13,6 +13,7 @@ type AttendeeSchema = {
   display_name: string;
   first_used_at: number | null;
   role: string;
+  metadata: string;
 };
 
 @injectable()
@@ -35,7 +36,8 @@ export class DoAttendeeRepository implements AttendeeRepository {
       UPDATE attendees 
       SET display_name = ${attendee.displayName},
           first_used_at = ${attendee.firstUsedAt},
-          role = ${attendee.role}
+          role = ${attendee.role},
+          metadata = ${JSON.stringify(attendee.metadata)}
       WHERE token = ${attendee.token}
     `);
   }
@@ -48,7 +50,17 @@ export class DoAttendeeRepository implements AttendeeRepository {
     attendee.setRole(role);
 
     if (row.first_used_at) {
-      attendee.checkIn(new Date(row.first_used_at * 1000));
+      const originalDate = new Date(row.first_used_at * 1000);
+      attendee.checkIn(originalDate);
+    }
+
+    if (row.metadata) {
+      try {
+        const parsedMetadata = JSON.parse(row.metadata);
+        attendee.setAllMetadata(parsedMetadata);
+      } catch {
+        attendee.setAllMetadata({});
+      }
     }
 
     return attendee;

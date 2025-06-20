@@ -6,7 +6,6 @@ Feature: Status
 		When I make a GET request to "/status?token=f185f505-d8c0-43ce-9e7b-bb9e8909072d"
 		Then the response status should be 200
 		And the response json should have property "first_use" is not null
-	@wip
 	Scenario: When staff query attendee status and not update first_used_at
 		Given there have some attendees
 			| token                                | display_name | first_used_at |
@@ -14,7 +13,6 @@ Feature: Status
 		When I make a GET request to "/status?token=f185f505-d8c0-43ce-9e7b-bb9e8909072d&StaffQuery=true"
 		Then the response status should be 200
 		And the response json should have property "first_use" is null
-	@wip
 	Scenario: When attendee is used then return first_used_at
 		Given there have some attendees
 			| token                                | display_name | first_used_at             |
@@ -32,7 +30,6 @@ Feature: Status
 				"attr": {}
 			}
 			"""
-	@wip
 	Scenario: When attendee is staff then role is staff
 		Given there have some attendees
 			| token                                | display_name | role  | first_used_at             |
@@ -50,7 +47,6 @@ Feature: Status
 				"attr": {}
 			}
 			"""
-	@wip
 	Scenario: When attendee metadata is configured then display it
 		Given there have some attendees
 			| token                                | metadata                | display_name | role  | first_used_at             |
