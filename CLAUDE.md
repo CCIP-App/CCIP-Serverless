@@ -85,7 +85,7 @@ CCIP Serverless is the serverless OPass backend built on Cloudflare Workers with
 
 Current schema includes:
 
-- **attendees**: `token` (PK), `display_name`, `first_used_at`
+- **attendees**: `token` (PK), `display_name`, `first_used_at`, `role`
 
 ### Path Aliases
 
@@ -303,9 +303,119 @@ interface Env {
 
 Run `pnpm cf-typegen` after changing `wrangler.jsonc` to regenerate types.
 
+## API Development Workflow
+
+### Adding New API Endpoints
+
+When implementing new API endpoints, follow this systematic approach:
+
+1. **Feature-Driven Development**: Start with BDD feature files to define expected behavior
+2. **Clean Architecture Flow**: Implement layers in dependency order (Entity → Use Case → Presenter → Controller)
+3. **Entity First**: Add business logic methods to entities (e.g., `checkIn()` for usage tracking)
+4. **Repository Methods**: Add persistence methods like `save()` for entity state changes
+5. **Use Case Implementation**: Orchestrate business logic without returning data directly
+6. **Presenter Pattern**: Define API response format in presenters, not use cases
+7. **Controller Integration**: Wire everything together following OpenAPI patterns
+
+### Entity Design Patterns
+
+**State Management in Entities:**
+
+```typescript
+// ✅ Correct - Private state with controlled access
+export class Attendee {
+  private _firstUsedAt: number | null = null;
+
+  get firstUsedAt(): number | null {
+    return this._firstUsedAt;
+  }
+
+  checkIn(time: Date): void {
+    if (!this._firstUsedAt) {
+      this._firstUsedAt = Math.floor(time.getTime() / 1000);
+    }
+  }
+}
+```
+
+**External Dependencies in Entities:**
+
+- Entities should NOT import external libraries (crypto, etc.)
+- Complex computations should be handled in repository layer
+- Public tokens, hashes, etc. calculated during entity construction
+
+### Repository Implementation Guidelines
+
+**Saving Entity Changes:**
+
+```typescript
+// ✅ Correct - Update all entity attributes
+async save(attendee: Attendee): Promise<void> {
+  await this.connection.executeAll(sql`
+    UPDATE attendees
+    SET display_name = ${attendee.displayName},
+        first_used_at = ${attendee.firstUsedAt},
+        role = ${attendee.role}
+    WHERE token = ${attendee.token}
+  `);
+}
+```
+
+**Entity Mapping with External Dependencies:**
+
+```typescript
+// ✅ Correct - Calculate external dependencies in repository
+private mapToEntity(row: AttendeeSchema): Attendee {
+  const publicToken = createHash("sha1").update(row.token).digest("hex");
+  const attendee = new Attendee(row.token, row.display_name, publicToken);
+
+  // Restore state from database
+  if (row.first_used_at) {
+    attendee.checkIn(new Date(row.first_used_at * 1000));
+  }
+
+  return attendee;
+}
+```
+
+### Compatibility Configuration
+
+**Cloudflare Workers with Node.js APIs:**
+
+When using Node.js built-ins (like `crypto`), ensure compatibility configuration is synchronized:
+
+- **wrangler.jsonc**: Add `"compatibility_flags": ["nodejs_compat"]`
+- **features/support/World.ts**: Add `compatibilityFlags: ["nodejs_compat"]` to Miniflare config
+
+### Testing Strategy
+
+**BDD Test Development:**
+
+1. Start with passing scenarios to establish core functionality
+2. Mark complex scenarios as `@wip` for future implementation
+3. Add missing step definitions progressively
+4. Ensure test environment matches production configuration
+
+**Step Definition Patterns:**
+
+```typescript
+// Property validation steps
+Then('the response json should have property {string} is not null', ...)
+Then('the response json should have property {string} is null', ...)
+```
+
+### Legacy Field Migration
+
+When removing legacy fields (like `event_id`):
+
+1. Update feature files to remove deprecated columns
+2. Update expected JSON responses
+3. Avoid adding fields to database schema if not needed in current phase
+4. Use presenter layer for backward compatibility if required
+
 ## Configuration Files
 
-- **wrangler.jsonc**: Cloudflare Workers config with Durable Objects binding
+- **wrangler.jsonc**: Cloudflare Workers config with Durable Objects binding and compatibility flags
 - **drizzle.config.ts**: Database ORM configuration
 - **tsconfig.json**: TypeScript config with JSX support and experimental decorators
 - **worker-configuration.d.ts**: Auto-generated Cloudflare Worker types (do not edit)
