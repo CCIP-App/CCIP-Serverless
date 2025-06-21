@@ -20,10 +20,7 @@ export class Announcement {
   }
 
   allMessages(): Record<Locale, string> {
-    const result: Record<Locale, string> = {} as Record<
-      Locale,
-      string
-    >;
+    const result: Record<Locale, string> = {} as Record<Locale, string>;
     for (const [locale, content] of this.messages) {
       result[locale] = content;
     }

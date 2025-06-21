@@ -8,7 +8,8 @@ export interface DurableDatabase {
 
 export class DatabaseConnector<
   T extends Rpc.DurableObjectBranded & DurableDatabase,
-> implements IDatabaseConnection {
+> implements IDatabaseConnection
+{
   private readonly dialect: SQLiteDialect = new SQLiteSyncDialect();
 
   constructor(private readonly database: DurableObjectStub<T>) {}

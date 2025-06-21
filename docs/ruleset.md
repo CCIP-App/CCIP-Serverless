@@ -7,6 +7,7 @@ The Ruleset System is a flexible rule engine designed to manage event attendee i
 ### Core Purpose
 
 The system addresses common event management challenges:
+
 - **Resource Control**: Prevent attendees from taking multiple lunch boxes, welcome kits, or other limited resources
 - **Progressive Unlocking**: Create structured experiences where completing one action unlocks others (e.g., check-in before meal collection)
 - **Role-Based Access**: Different attendee types (audience, speakers, staff) have different available actions
@@ -33,6 +34,7 @@ The system replaces hardcoded event logic with a flexible, configurable rule eng
 ## User Stories
 
 ### Resource Control
+
 ```gherkin
 Feature: Meal Collection Control
   As an event organizer
@@ -54,6 +56,7 @@ Feature: Meal Collection Control
 ```
 
 ### Progressive Unlocking
+
 ```gherkin
 Feature: Check-in Workflow
   As an event organizer
@@ -75,6 +78,7 @@ Feature: Check-in Workflow
 ```
 
 ### Role-Based Access
+
 ```gherkin
 Feature: Speaker-Only Resources
   As an event organizer
@@ -95,6 +99,7 @@ Feature: Speaker-Only Resources
 ```
 
 ### Conditional Metadata Integration
+
 ```gherkin
 Feature: Dietary Preference Meals
   As an event organizer
@@ -125,6 +130,7 @@ Legacy JSON Input → Migration Tool → AST Conversion → Event DO KV Storage
 ```
 
 **Steps:**
+
 1. Admin panel provides migration tool interface
 2. Organizer inputs legacy scenario JSON format
 3. Migration tool converts to AST-based structure
@@ -155,6 +161,7 @@ Action Request → Load from Event DO KV → Load Attendee → Evaluate → Upda
 ```
 
 **Steps:**
+
 1. Attendee makes `/use/{rule_id}` request with token
 2. Route to appropriate Event Durable Object
 3. Load rulesets from KV: `eventDO.get("rulesets")`
@@ -192,6 +199,7 @@ Status Request → Load from Event DO KV → Load Attendee → Evaluate All → 
 ```
 
 **Steps:**
+
 1. Attendee makes `/status` request with token
 2. Route to appropriate Event Durable Object
 3. Load rulesets from KV: `eventDO.get("rulesets")`
@@ -221,7 +229,6 @@ sequenceDiagram
     API-->>Attendee: Complete scenario status
 ```
 
-
 ## Domain Model
 
 The domain model uses Clean Architecture principles with an aggregate root pattern. It leverages Strategy and Composite patterns for flexible rule evaluation.
@@ -232,22 +239,20 @@ The `Ruleset` is the aggregate root that manages a collection of rules. It provi
 
 ```typescript
 export class Ruleset {
-  constructor(
-    private readonly rules: Map<string, Rule>
-  ) {}
+  constructor(private readonly rules: Map<string, Rule>) {}
 
   getRule(id: string): Rule | null {
-    return this.rules.get(id) || null
+    return this.rules.get(id) || null;
   }
 
   evaluate(context: EvaluationContext): Map<string, Rule> {
-    const availableRules = new Map<string, Rule>()
+    const availableRules = new Map<string, Rule>();
     this.rules.forEach((rule, id) => {
       if (rule.isVisible(context)) {
-        availableRules.set(id, rule)
+        availableRules.set(id, rule);
       }
-    })
-    return availableRules
+    });
+    return availableRules;
   }
 }
 ```
@@ -266,33 +271,35 @@ export class Rule {
     public readonly showCondition: ConditionNode,
     public readonly unlockCondition: ConditionNode,
     public readonly actions: ActionNode[],
-    public readonly metadataMapping: MetadataMapping
+    public readonly metadataMapping: MetadataMapping,
   ) {}
 
   getMessage(messageId: string): I18nText | null {
-    return this.messages.get(messageId) || null
+    return this.messages.get(messageId) || null;
   }
 
   isVisible(context: EvaluationContext): boolean {
-    return this.showCondition.evaluate(context)
+    return this.showCondition.evaluate(context);
   }
 
   isUsable(context: EvaluationContext): boolean {
-    return this.unlockCondition.evaluate(context) &&
-           !this.isAlreadyUsed(context) &&
-           this.timeWindow.isAvailable(context.currentTime)
+    return (
+      this.unlockCondition.evaluate(context) &&
+      !this.isAlreadyUsed(context) &&
+      this.timeWindow.isAvailable(context.currentTime)
+    );
   }
 
   apply(context: ExecutionContext): void {
     if (!this.isVisible(context) || !this.isUsable(context)) {
-      throw new Error("Cannot apply rule")
+      throw new Error("Cannot apply rule");
     }
 
-    this.actions.forEach(action => action.execute(context))
+    this.actions.forEach((action) => action.execute(context));
   }
 
   private isAlreadyUsed(context: EvaluationContext): boolean {
-    return context.attendee.hasUsedRule(this.id)
+    return context.attendee.hasUsedRule(this.id);
   }
 }
 ```
@@ -302,66 +309,74 @@ export class Rule {
 Conditions form an Abstract Syntax Tree (AST) that can be evaluated to determine rule visibility and usability.
 
 #### Base Condition
+
 ```typescript
 export abstract class ConditionNode {
-  abstract evaluate(context: EvaluationContext): boolean
+  abstract evaluate(context: EvaluationContext): boolean;
 }
 ```
 
 #### Leaf Conditions
 
 **AttributeCondition**: Checks if an attendee attribute matches an expected value.
+
 ```typescript
 export class AttributeCondition extends ConditionNode {
   constructor(
     private readonly attributeKey: string,
-    private readonly expectedValue: string
+    private readonly expectedValue: string,
   ) {}
 
   evaluate(context: EvaluationContext): boolean {
-    return context.attendee.getMetadata(this.attributeKey) === this.expectedValue
+    return (
+      context.attendee.getMetadata(this.attributeKey) === this.expectedValue
+    );
   }
 }
 ```
 
 **UsedRuleCondition**: Checks if another rule has been used.
+
 ```typescript
 export class UsedRuleCondition extends ConditionNode {
   constructor(private readonly ruleId: string) {}
 
   evaluate(context: EvaluationContext): boolean {
-    return context.attendee.hasUsedRule(this.ruleId)
+    return context.attendee.hasUsedRule(this.ruleId);
   }
 }
 ```
 
 **AlwaysTrueCondition**: A condition that always evaluates to true (for rules without conditions).
+
 ```typescript
 export class AlwaysTrueCondition extends ConditionNode {
   evaluate(context: EvaluationContext): boolean {
-    return true
+    return true;
   }
 }
 ```
 
 **RoleCondition**: Checks if attendee has one of the allowed roles.
+
 ```typescript
 export class RoleCondition extends ConditionNode {
   constructor(private readonly allowedRoles: string[]) {}
 
   evaluate(context: EvaluationContext): boolean {
-    return this.allowedRoles.includes(context.attendee.role)
+    return this.allowedRoles.includes(context.attendee.role);
   }
 }
 ```
 
 **StaffCondition**: Checks if the query is in staff mode.
+
 ```typescript
 export class StaffCondition extends ConditionNode {
   constructor(private readonly shouldBeStaff: boolean = true) {}
 
   evaluate(context: EvaluationContext): boolean {
-    return context.isStaffQuery === this.shouldBeStaff
+    return context.isStaffQuery === this.shouldBeStaff;
   }
 }
 ```
@@ -369,23 +384,25 @@ export class StaffCondition extends ConditionNode {
 #### Composite Conditions
 
 **AndCondition**: All child conditions must be true.
+
 ```typescript
 export class AndCondition extends ConditionNode {
   constructor(private readonly children: ConditionNode[]) {}
 
   evaluate(context: EvaluationContext): boolean {
-    return this.children.every(child => child.evaluate(context))
+    return this.children.every((child) => child.evaluate(context));
   }
 }
 ```
 
 **OrCondition**: At least one child condition must be true.
+
 ```typescript
 export class OrCondition extends ConditionNode {
   constructor(private readonly children: ConditionNode[]) {}
 
   evaluate(context: EvaluationContext): boolean {
-    return this.children.some(child => child.evaluate(context))
+    return this.children.some((child) => child.evaluate(context));
   }
 }
 ```
@@ -395,22 +412,24 @@ export class OrCondition extends ConditionNode {
 Actions are executed when a rule is applied successfully.
 
 #### Base Action
+
 ```typescript
 export abstract class ActionNode {
-  abstract execute(context: ExecutionContext): void
+  abstract execute(context: ExecutionContext): void;
 }
 ```
 
 #### Concrete Actions
 
 **MarkUsedAction**: Marks a rule as used by storing a timestamp in attendee metadata.
+
 ```typescript
 export class MarkUsedAction extends ActionNode {
   constructor(private readonly ruleId: string) {}
 
   execute(context: ExecutionContext): void {
-    const timestamp = Math.floor(context.currentTime.getTime() / 1000)
-    context.attendee.setMetadata(`_rule_${this.ruleId}`, timestamp.toString())
+    const timestamp = Math.floor(context.currentTime.getTime() / 1000);
+    context.attendee.setMetadata(`_rule_${this.ruleId}`, timestamp.toString());
   }
 }
 ```
@@ -420,15 +439,16 @@ export class MarkUsedAction extends ActionNode {
 #### TimeWindow
 
 Represents the availability period for a rule.
+
 ```typescript
 export class TimeWindow {
   constructor(
     public readonly start: Date,
-    public readonly end: Date
+    public readonly end: Date,
   ) {}
 
   isAvailable(current: Date): boolean {
-    return current >= this.start && current <= this.end
+    return current >= this.start && current <= this.end;
   }
 }
 ```
@@ -436,14 +456,15 @@ export class TimeWindow {
 #### I18nText
 
 Handles internationalized text with fallback support.
+
 ```typescript
 export class I18nText {
   constructor(private readonly translations: Map<string, string>) {}
 
   getText(locale: string): string {
-    return this.translations.get(locale) ||
-           this.translations.get('en-US') ||
-           ''
+    return (
+      this.translations.get(locale) || this.translations.get("en-US") || ""
+    );
   }
 }
 ```
@@ -451,6 +472,7 @@ export class I18nText {
 #### MetadataMapping
 
 Maps attendee metadata to rule-specific display attributes for API responses.
+
 ```typescript
 export class MetadataMapping {
   constructor(private readonly mappings: Map<string, string>) {}
@@ -458,13 +480,13 @@ export class MetadataMapping {
   // Maps attendee metadata to scenario display format
   // e.g. attendee.metadata["飲食"] -> scenario.attr["diet"]
   applyToDisplay(attendeeMetadata: Map<string, any>): Map<string, any> {
-    const result = new Map<string, any>()
+    const result = new Map<string, any>();
     this.mappings.forEach((attendeeKey, displayKey) => {
       if (attendeeMetadata.has(attendeeKey)) {
-        result.set(displayKey, attendeeMetadata.get(attendeeKey))
+        result.set(displayKey, attendeeMetadata.get(attendeeKey));
       }
-    })
-    return result
+    });
+    return result;
   }
 }
 ```
@@ -474,12 +496,13 @@ export class MetadataMapping {
 #### EvaluationContext
 
 Provides the context needed for evaluating rule conditions.
+
 ```typescript
 export class EvaluationContext {
   constructor(
     public readonly attendee: Attendee,
     public readonly currentTime: Date,
-    public readonly isStaffQuery: boolean = false
+    public readonly isStaffQuery: boolean = false,
   ) {}
 }
 ```
@@ -487,11 +510,12 @@ export class EvaluationContext {
 #### ExecutionContext
 
 Provides the context needed for executing rule actions.
+
 ```typescript
 export class ExecutionContext {
   constructor(
     public readonly attendee: Attendee,
-    public readonly currentTime: Date
+    public readonly currentTime: Date,
   ) {}
 }
 ```
@@ -512,7 +536,9 @@ The ruleset system stores all configuration in the Event Durable Object's KV sto
 Rulesets are stored under a single key for atomic updates:
 
 ```typescript
-durableObject.set("rulesets", { /* ruleset data */ })
+durableObject.set("rulesets", {
+  /* ruleset data */
+});
 ```
 
 ### Ruleset Schema
@@ -557,9 +583,7 @@ The top-level structure organizes rulesets by attendee role:
           "show": { "type": "AlwaysTrue" },
           "unlock": { "type": "AlwaysTrue" }
         },
-        "actions": [
-          { "type": "MarkUsed", "ruleId": "checkin" }
-        ],
+        "actions": [{ "type": "MarkUsed", "ruleId": "checkin" }],
         "metadata": {}
       },
       {
@@ -583,20 +607,22 @@ The top-level structure organizes rulesets by attendee role:
           "show": { "type": "AlwaysTrue" },
           "unlock": { "type": "UsedRule", "ruleId": "checkin" }
         },
-        "actions": [
-          { "type": "MarkUsed", "ruleId": "welcome_kit" }
-        ],
+        "actions": [{ "type": "MarkUsed", "ruleId": "welcome_kit" }],
         "metadata": {}
       }
     ]
   },
   "speaker": {
     "version": "1.0",
-    "rules": [/* speaker-specific rules */]
+    "rules": [
+      /* speaker-specific rules */
+    ]
   },
   "staff": {
     "version": "1.0",
-    "rules": [/* staff-specific rules */]
+    "rules": [
+      /* staff-specific rules */
+    ]
   }
 }
 ```
@@ -606,7 +632,7 @@ The top-level structure organizes rulesets by attendee role:
 Each rule contains:
 
 | Field        | Type   | Description                                  |
-|--------------|--------|----------------------------------------------|
+| ------------ | ------ | -------------------------------------------- |
 | `id`         | string | Unique identifier for the rule               |
 | `order`      | number | Display order (lower numbers appear first)   |
 | `messages`   | object | Map of message IDs to internationalized text |
@@ -686,6 +712,7 @@ Actions use the same polymorphic structure:
 ```
 
 Future action types can be added:
+
 ```json
 // Examples of potential future actions
 { "type": "SendNotification", "template": "welcome" }
@@ -707,6 +734,7 @@ Maps attendee attributes to rule-specific display attributes:
 ```
 
 This maps:
+
 - `attendee.metadata["飲食"]` → `scenario.attr["diet"]`
 - `attendee.metadata["過敏原"]` → `scenario.attr["allergies"]`
 
@@ -729,26 +757,26 @@ The parser converts JSON schema to domain objects using a factory pattern:
 export class ConditionNodeFactory {
   static create(json: any): ConditionNode {
     switch (json.type) {
-      case 'AlwaysTrue':
-        return new AlwaysTrueCondition()
-      case 'Attribute':
-        return new AttributeCondition(json.key, json.value)
-      case 'UsedRule':
-        return new UsedRuleCondition(json.ruleId)
-      case 'Role':
-        return new RoleCondition(json.allowedRoles)
-      case 'Staff':
-        return new StaffCondition(json.shouldBeStaff)
-      case 'And':
+      case "AlwaysTrue":
+        return new AlwaysTrueCondition();
+      case "Attribute":
+        return new AttributeCondition(json.key, json.value);
+      case "UsedRule":
+        return new UsedRuleCondition(json.ruleId);
+      case "Role":
+        return new RoleCondition(json.allowedRoles);
+      case "Staff":
+        return new StaffCondition(json.shouldBeStaff);
+      case "And":
         return new AndCondition(
-          json.children.map(child => ConditionNodeFactory.create(child))
-        )
-      case 'Or':
+          json.children.map((child) => ConditionNodeFactory.create(child)),
+        );
+      case "Or":
         return new OrCondition(
-          json.children.map(child => ConditionNodeFactory.create(child))
-        )
+          json.children.map((child) => ConditionNodeFactory.create(child)),
+        );
       default:
-        throw new Error(`Unknown condition type: ${json.type}`)
+        throw new Error(`Unknown condition type: ${json.type}`);
     }
   }
 }
@@ -756,11 +784,11 @@ export class ConditionNodeFactory {
 export class ActionNodeFactory {
   static create(json: any): ActionNode {
     switch (json.type) {
-      case 'MarkUsed':
-        return new MarkUsedAction(json.ruleId)
+      case "MarkUsed":
+        return new MarkUsedAction(json.ruleId);
       // TODO: Add more action types as needed
       default:
-        throw new Error(`Unknown action type: ${json.type}`)
+        throw new Error(`Unknown action type: ${json.type}`);
     }
   }
 }
@@ -779,7 +807,6 @@ export class LegacyMigrationTool {
     // - Convert conditions.unlock to unlockCondition AST
     // - Generate default actions (MarkUsed)
     // - Handle metadata mappings
-
     // Note: Admin panel integration will be supported in future
   }
 
@@ -796,21 +823,21 @@ export class LegacyMigrationTool {
 
 ```typescript
 export interface RulesetRepository {
-  load(): Promise<Map<string, Ruleset>>
-  save(rulesets: Map<string, Ruleset>): Promise<void>
-  update(role: string, ruleset: Ruleset): Promise<void>
+  load(): Promise<Map<string, Ruleset>>;
+  save(rulesets: Map<string, Ruleset>): Promise<void>;
+  update(role: string, ruleset: Ruleset): Promise<void>;
 }
 
 @injectable()
 export class DurableObjectRulesetRepository implements RulesetRepository {
   constructor(
     @inject(DatabaseConnectionToken)
-    private readonly connection: IDatabaseConnection
+    private readonly connection: IDatabaseConnection,
   ) {}
 
   async load(): Promise<Map<string, Ruleset>> {
-    const data = await this.connection.get("rulesets")
-    if (!data) return new Map()
+    const data = await this.connection.get("rulesets");
+    if (!data) return new Map();
 
     // TODO: Parse JSON and create Ruleset domain objects
     // - Use ConditionNodeFactory for conditions
@@ -832,20 +859,20 @@ export class DurableObjectRulesetRepository implements RulesetRepository {
 export class GetAvailableRulesQuery {
   constructor(
     private readonly repository: RulesetRepository,
-    private readonly presenter: RuleListPresenter
+    private readonly presenter: RuleListPresenter,
   ) {}
 
   async execute(attendee: Attendee, currentTime: Date): Promise<void> {
-    const rulesets = await this.repository.load()
-    const roleRuleset = rulesets.get(attendee.role)
+    const rulesets = await this.repository.load();
+    const roleRuleset = rulesets.get(attendee.role);
 
     if (!roleRuleset) {
-      this.presenter.presentEmpty()
-      return
+      this.presenter.presentEmpty();
+      return;
     }
 
-    const context = new EvaluationContext(attendee, currentTime)
-    const availableRules = roleRuleset.evaluate(context)
+    const context = new EvaluationContext(attendee, currentTime);
+    const availableRules = roleRuleset.evaluate(context);
 
     // TODO: Format rules for display
     // - Check usability status
@@ -853,8 +880,8 @@ export class GetAvailableRulesQuery {
     // - Sort by order
 
     availableRules.forEach((rule, id) => {
-      this.presenter.addRule(/* formatted rule data */)
-    })
+      this.presenter.addRule(/* formatted rule data */);
+    });
   }
 }
 
@@ -862,7 +889,7 @@ export class GetAvailableRulesQuery {
 export class UseRuleCommand {
   constructor(
     private readonly repository: RulesetRepository,
-    private readonly attendeeRepository: AttendeeRepository
+    private readonly attendeeRepository: AttendeeRepository,
   ) {}
 
   async execute(attendeeToken: string, ruleId: string): Promise<void> {
@@ -880,7 +907,10 @@ export class UseRuleCommand {
 ```typescript
 @injectable()
 export class RuleEvaluationService {
-  evaluate(ruleset: Ruleset, context: EvaluationContext): Map<string, RuleStatus> {
+  evaluate(
+    ruleset: Ruleset,
+    context: EvaluationContext,
+  ): Map<string, RuleStatus> {
     // TODO: Evaluate all rules in ruleset
     // TODO: Return status map with visibility/usability info
   }
@@ -891,7 +921,7 @@ export class RuleEvaluationService {
       usable: rule.isUsable(context),
       used: context.attendee.hasUsedRule(rule.id),
       // TODO: Add more status fields
-    }
+    };
   }
 }
 
@@ -900,9 +930,9 @@ export class DatetimeService implements IDatetimeService {
   getCurrentTime(): Date {
     // Check if we're in test mode and return mock datetime
     if (env.__TEST__ === "true" && env.__MOCK_DATETIME__) {
-      return new Date(env.__MOCK_DATETIME__)
+      return new Date(env.__MOCK_DATETIME__);
     }
-    return new Date()
+    return new Date();
   }
 }
 ```
@@ -914,20 +944,22 @@ export class DatetimeService implements IDatetimeService {
 export class StatusController extends OpenAPIRoute {
   schema = {
     // TODO: Define OpenAPI schema
-  }
+  };
 
   async handle(c: Context<{ Bindings: Env }>) {
-    const token = c.req.query('token')
+    const token = c.req.query("token");
 
     // Resolve dependencies
-    const repository = container.resolve<RulesetRepository>(RulesetRepositoryToken)
-    const presenter = new JsonRuleListPresenter()
+    const repository = container.resolve<RulesetRepository>(
+      RulesetRepositoryToken,
+    );
+    const presenter = new JsonRuleListPresenter();
 
     // Execute query
-    const query = new GetAvailableRulesQuery(repository, presenter)
-    await query.execute(attendee, currentTime)
+    const query = new GetAvailableRulesQuery(repository, presenter);
+    await query.execute(attendee, currentTime);
 
-    return c.json(presenter.toJson())
+    return c.json(presenter.toJson());
   }
 }
 
@@ -935,17 +967,17 @@ export class StatusController extends OpenAPIRoute {
 export class UseRuleController extends OpenAPIRoute {
   schema = {
     // TODO: Define OpenAPI schema
-  }
+  };
 
   async handle(c: Context<{ Bindings: Env }>) {
-    const { ruleId } = c.req.param()
-    const token = c.req.query('token')
+    const { ruleId } = c.req.param();
+    const token = c.req.query("token");
 
     try {
       // TODO: Execute UseRuleCommand
-      return c.json({ success: true })
+      return c.json({ success: true });
     } catch (error) {
-      return c.json({ message: error.message }, 400)
+      return c.json({ message: error.message }, 400);
     }
   }
 }
@@ -955,28 +987,29 @@ export class UseRuleController extends OpenAPIRoute {
 
 ```typescript
 // BDD step definition
-Given('there have a ruleset for {string} with name {string} and scenarios:',
-  async function(event: string, role: string, scenariosJson: string) {
+Given(
+  "there have a ruleset for {string} with name {string} and scenarios:",
+  async function (event: string, role: string, scenariosJson: string) {
     // TODO: Parse legacy format
     // TODO: Convert to new ruleset format
     // TODO: Store in test database
-  }
-)
+  },
+);
 
 // Unit test example
-describe('AndCondition', () => {
-  it('should return true when all children are true', () => {
+describe("AndCondition", () => {
+  it("should return true when all children are true", () => {
     const condition = new AndCondition([
       new AlwaysTrueCondition(),
-      new AlwaysTrueCondition()
-    ])
+      new AlwaysTrueCondition(),
+    ]);
 
-    const context = new EvaluationContext(attendee, new Date())
-    expect(condition.evaluate(context)).toBe(true)
-  })
+    const context = new EvaluationContext(attendee, new Date());
+    expect(condition.evaluate(context)).toBe(true);
+  });
 
   // TODO: Add more test cases
-})
+});
 ```
 
 ### Performance Considerations
@@ -984,10 +1017,10 @@ describe('AndCondition', () => {
 ```typescript
 // KV Storage Optimization
 class CachedRulesetRepository implements RulesetRepository {
-  private cache: Map<string, Ruleset> | null = null
+  private cache: Map<string, Ruleset> | null = null;
 
   async load(): Promise<Map<string, Ruleset>> {
-    if (this.cache) return this.cache
+    if (this.cache) return this.cache;
 
     // TODO: Load from KV and cache
     // TODO: Implement cache invalidation strategy
@@ -1074,61 +1107,61 @@ const checkInRuleset = {
 ```typescript
 // Ruleset with dependencies
 const progressiveRuleset = {
-  "audience": {
-    "version": "1.0",
-    "rules": [
+  audience: {
+    version: "1.0",
+    rules: [
       {
-        "id": "checkin",
-        "order": 0,
-        "displayText": {
+        id: "checkin",
+        order: 0,
+        displayText: {
           "en-US": "Check-in",
-          "zh-TW": "報到"
+          "zh-TW": "報到",
         },
-        "conditions": {
-          "show": { "type": "AlwaysTrue" },
-          "unlock": { "type": "AlwaysTrue" }
+        conditions: {
+          show: { type: "AlwaysTrue" },
+          unlock: { type: "AlwaysTrue" },
         },
         // ... other fields
       },
       {
-        "id": "welcome_kit",
-        "order": 1,
-        "displayText": {
+        id: "welcome_kit",
+        order: 1,
+        displayText: {
           "en-US": "Welcome Kit",
-          "zh-TW": "迎賓袋"
+          "zh-TW": "迎賓袋",
         },
-        "conditions": {
-          "show": { "type": "AlwaysTrue" },
-          "unlock": { "type": "UsedRule", "ruleId": "checkin" }
+        conditions: {
+          show: { type: "AlwaysTrue" },
+          unlock: { type: "UsedRule", ruleId: "checkin" },
         },
-        "lockedMessage": {
+        lockedMessage: {
           "en-US": "Please check-in first",
-          "zh-TW": "請先完成報到"
+          "zh-TW": "請先完成報到",
         },
         // ... other fields
       },
       {
-        "id": "lunch",
-        "order": 2,
-        "displayText": {
+        id: "lunch",
+        order: 2,
+        displayText: {
           "en-US": "Lunch Box",
-          "zh-TW": "午餐"
+          "zh-TW": "午餐",
         },
-        "conditions": {
-          "show": { "type": "AlwaysTrue" },
-          "unlock": {
-            "type": "And",
-            "children": [
-              { "type": "UsedRule", "ruleId": "checkin" },
-              { "type": "Attribute", "key": "meal_ticket", "value": "Y" }
-            ]
-          }
+        conditions: {
+          show: { type: "AlwaysTrue" },
+          unlock: {
+            type: "And",
+            children: [
+              { type: "UsedRule", ruleId: "checkin" },
+              { type: "Attribute", key: "meal_ticket", value: "Y" },
+            ],
+          },
         },
         // ... other fields
-      }
-    ]
-  }
-}
+      },
+    ],
+  },
+};
 ```
 
 ### Conditional Access Example
@@ -1136,48 +1169,48 @@ const progressiveRuleset = {
 ```typescript
 // VIP-only scenarios
 const vipRuleset = {
-  "audience": {
-    "version": "1.0",
-    "rules": [
+  audience: {
+    version: "1.0",
+    rules: [
       {
-        "id": "vip_lounge",
-        "order": 0,
-        "displayText": {
+        id: "vip_lounge",
+        order: 0,
+        displayText: {
           "en-US": "VIP Lounge Access",
-          "zh-TW": "VIP 休息室"
+          "zh-TW": "VIP 休息室",
         },
-        "conditions": {
-          "show": {
-            "type": "Attribute",
-            "key": "tier",
-            "value": "VIP"
+        conditions: {
+          show: {
+            type: "Attribute",
+            key: "tier",
+            value: "VIP",
           },
-          "unlock": { "type": "AlwaysTrue" }
+          unlock: { type: "AlwaysTrue" },
         },
         // ... other fields
       },
       {
-        "id": "special_gift",
-        "order": 1,
-        "displayText": {
+        id: "special_gift",
+        order: 1,
+        displayText: {
           "en-US": "Special Gift",
-          "zh-TW": "特別禮品"
+          "zh-TW": "特別禮品",
         },
-        "conditions": {
-          "show": {
-            "type": "Or",
-            "children": [
-              { "type": "Attribute", "key": "tier", "value": "VIP" },
-              { "type": "Attribute", "key": "speaker", "value": "Y" }
-            ]
+        conditions: {
+          show: {
+            type: "Or",
+            children: [
+              { type: "Attribute", key: "tier", value: "VIP" },
+              { type: "Attribute", key: "speaker", value: "Y" },
+            ],
           },
-          "unlock": { "type": "UsedRule", "ruleId": "checkin" }
+          unlock: { type: "UsedRule", ruleId: "checkin" },
         },
         // ... other fields
-      }
-    ]
-  }
-}
+      },
+    ],
+  },
+};
 ```
 
 ### Metadata Mapping Example

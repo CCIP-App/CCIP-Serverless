@@ -1,6 +1,6 @@
 import { Announcement } from "@/entity/Announcement";
-import { Locale } from "@/entity/Locale";
 import { AttendeeRole } from "@/entity/Attendee";
+import { Locale } from "@/entity/Locale";
 import {
   DatabaseConnectionToken,
   IDatabaseConnection,
