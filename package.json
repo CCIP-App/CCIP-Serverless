@@ -15,23 +15,23 @@
   },
   "dependencies": {
     "@abraham/reflection": "^0.13.0",
-    "chanfana": "^2.8.0",
+    "chanfana": "^2.8.1",
     "drizzle-orm": "^0.44.2",
-    "hono": "^4.7.11",
+    "hono": "^4.8.2",
     "tsyringe": "^4.10.0",
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.7.0",
+    "@cloudflare/vite-plugin": "^1.7.4",
     "@cucumber/cucumber": "^11.3.0",
     "@eslint/js": "^9.29.0",
     "@types/node": "^24.0.3",
     "drizzle-kit": "^0.31.1",
     "eslint": "^9.29.0",
     "eslint-plugin-react": "^7.37.5",
-    "expect": "^30.0.0",
+    "expect": "^30.0.2",
     "globals": "^16.2.0",
-    "miniflare": "^4.20250612.0",
+    "miniflare": "^4.20250617.3",
     "prettier": "3.5.3",
     "prettier-plugin-organize-imports": "^4.1.0",
     "tsx": "^4.20.3",
@@ -39,6 +39,6 @@
     "vite": "^6.3.5",
     "vite-ssr-components": "^0.3.0",
     "vitest": "~3.1.0",
-    "wrangler": "^4.20.1"
+    "wrangler": "^4.20.5"
   }
 }
