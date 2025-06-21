@@ -5,11 +5,13 @@ import { DoAttendeeRepository } from "@/repository/DoAttendeeRepository";
 import { DoRulesetRepository } from "@/repository/DoRulesetRepository";
 import { NativeDatetimeService } from "@/service/NativeDatetimeService";
 import { RuleEvaluationService } from "@/service/RuleEvaluationService";
+import { RuleFactory } from "@/service/RuleFactory";
 import {
   AnnouncementRepositoryToken,
   AttendeeRepositoryToken,
   DatetimeServiceToken,
   RuleEvaluationServiceToken,
+  RuleFactoryToken,
   RulesetRepositoryToken,
 } from "@/usecase/interface";
 import { env } from "cloudflare:workers";
@@ -42,4 +44,8 @@ container.register(DatetimeServiceToken, {
 
 container.register(RuleEvaluationServiceToken, {
   useClass: RuleEvaluationService,
+});
+
+container.register(RuleFactoryToken, {
+  useClass: RuleFactory,
 });

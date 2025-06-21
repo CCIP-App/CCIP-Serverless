@@ -1,22 +1,34 @@
+import { Rule } from "@/entity/Rule";
+
 /**
  * Ruleset entity - represents a collection of rules for an event
- * Empty implementation for now to replace 'any' types
+ * Pure domain entity that manages Rule objects without parsing concerns
  */
 export class Ruleset {
-  constructor(private readonly ruleData: Record<string, unknown>) {}
+  private readonly rules: Map<string, Rule>;
+
+  constructor(rules: Map<string, Rule>) {
+    this.rules = new Map(rules);
+  }
 
   /**
-   * Get all rules in this ruleset as raw data
-   * TODO: Replace with proper Rule entities when needed
+   * Get all rules in this ruleset
    */
-  getAllRules(): Record<string, unknown> {
-    return { ...this.ruleData };
+  getAllRules(): Map<string, Rule> {
+    return new Map(this.rules);
+  }
+
+  /**
+   * Get a specific rule by ID
+   */
+  getRule(ruleId: string): Rule | null {
+    return this.rules.get(ruleId) || null;
   }
 
   /**
    * Check if ruleset has any rules
    */
   hasRules(): boolean {
-    return Object.keys(this.ruleData).length > 0;
+    return this.rules.size > 0;
   }
 }

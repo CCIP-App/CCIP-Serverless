@@ -53,3 +53,5 @@ export const DatetimeServiceToken = Symbol("DatetimeService");
 export interface IDatetimeService {
   getCurrentTime(): Date;
 }
+
+export const RuleFactoryToken = Symbol("RuleFactory");

@@ -3,7 +3,8 @@ import {
   DatabaseConnectionToken,
   IKvDatabaseConnection,
 } from "@/infra/DatabaseConnection";
-import { RulesetRepository } from "@/usecase/interface";
+import { RuleFactory } from "@/service/RuleFactory";
+import { RuleFactoryToken, RulesetRepository } from "@/usecase/interface";
 import { inject, injectable } from "tsyringe";
 
 @injectable()
@@ -11,6 +12,8 @@ export class DoRulesetRepository implements RulesetRepository {
   constructor(
     @inject(DatabaseConnectionToken)
     private readonly connection: IKvDatabaseConnection,
+    @inject(RuleFactoryToken)
+    private readonly ruleFactory: RuleFactory,
   ) {}
 
   async load(): Promise<Ruleset> {
@@ -19,10 +22,11 @@ export class DoRulesetRepository implements RulesetRepository {
       await this.connection.getValue<Record<string, unknown>>("rulesets");
 
     if (!ruleData) {
-      return new Ruleset({});
+      return new Ruleset(new Map());
     }
 
-    // Return wrapped in Ruleset entity - just to replace 'any' types for now
-    return new Ruleset(ruleData);
+    // Use RuleFactory to parse JSON into Rule entities
+    const rules = this.ruleFactory.createRulesFromRuleset(ruleData);
+    return new Ruleset(rules);
   }
 }
