@@ -676,3 +676,31 @@ attendee.setMetadata(`_rule_${ruleId}`, timestamp.toString());
 - Step definition uses simplified format: `"the ruleset is:"` without event/role parameters
 
 For detailed design documentation, see `docs/ruleset.md`.
+
+### Implementation Progress and Conventions
+
+**Current Implementation State**:
+
+- ✅ Basic entities: `Ruleset`, `Rule`, `EvaluationContext`, `TimeWindow`, `LocalizedText`
+- ✅ Factory pattern: `RuleFactory` for JSON to domain object conversion
+- ✅ Repository pattern: `DoRulesetRepository` with proper DI and factory injection
+- ✅ Value objects: `RuleEvaluationResult`, `EvaluationResult` for type-safe evaluation state
+- ✅ Minimal condition system: `AlwaysTrueCondition` as base implementation
+- 🚧 Planned: Full condition types (Attribute, UsedRule, Role, Staff, And, Or)
+- 🚧 Planned: Action system for rule execution
+
+**Key Conventions Learned**:
+
+1. **Factory Separation from Entities**: Domain entities should not contain parsing logic. Use factory services for JSON→Entity conversion
+2. **Value Object Organization**: Move value objects to dedicated files (`TimeWindow.ts`, `Locale.ts` with `LocalizedText`)
+3. **Consistent Naming**: `LocalizedText` instead of `I18nText`, `Locale` enum instead of hardcoded strings
+4. **Repository Interface Design**: Load all rules via `load()`, not filtered by role - filtering happens via AST conditions
+5. **Service Interface Patterns**: Services should accept domain objects as parameters, not load directly from repositories
+6. **Minimal Progressive Implementation**: Start with empty entities/hardcoded logic, then progressively add features while keeping tests passing
+
+**BDD Test Conventions**:
+
+- Step definitions use simplified format: `"the ruleset is:"` without redundant parameters
+- Use `@wip` tags for work-in-progress scenarios
+- First implement passing scenarios, then gradually enable complex ones
+- Mock datetime via environment variables for predictable tests

@@ -239,20 +239,22 @@ The `Ruleset` is the aggregate root that manages a collection of rules. It provi
 
 ```typescript
 export class Ruleset {
-  constructor(private readonly rules: Map<string, Rule>) {}
+  private readonly rules: Map<string, Rule>;
 
-  getRule(id: string): Rule | null {
-    return this.rules.get(id) || null;
+  constructor(rules: Map<string, Rule>) {
+    this.rules = new Map(rules);
   }
 
-  evaluate(context: EvaluationContext): Map<string, Rule> {
-    const availableRules = new Map<string, Rule>();
-    this.rules.forEach((rule, id) => {
-      if (rule.isVisible(context)) {
-        availableRules.set(id, rule);
-      }
-    });
-    return availableRules;
+  getAllRules(): Map<string, Rule> {
+    return new Map(this.rules);
+  }
+
+  getRule(ruleId: string): Rule | null {
+    return this.rules.get(ruleId) || null;
+  }
+
+  hasRules(): boolean {
+    return this.rules.size > 0;
   }
 }
 ```
@@ -266,15 +268,14 @@ export class Rule {
   constructor(
     public readonly id: string,
     public readonly order: number,
-    public readonly messages: Map<string, I18nText>, // Message ID -> I18nText
+    public readonly messages: Map<string, LocalizedText>,
     public readonly timeWindow: TimeWindow,
     public readonly showCondition: ConditionNode,
     public readonly unlockCondition: ConditionNode,
-    public readonly actions: ActionNode[],
-    public readonly metadataMapping: MetadataMapping,
+    public readonly metadata: Map<string, unknown>,
   ) {}
 
-  getMessage(messageId: string): I18nText | null {
+  getMessage(messageId: string): LocalizedText | null {
     return this.messages.get(messageId) || null;
   }
 
@@ -285,22 +286,13 @@ export class Rule {
   isUsable(context: EvaluationContext): boolean {
     return (
       this.unlockCondition.evaluate(context) &&
-      !this.isAlreadyUsed(context) &&
-      this.timeWindow.isAvailable(context.currentTime)
+      this.timeWindow.isAvailable(context.currentTime) &&
+      !context.attendee.hasUsedRule(this.id)
     );
   }
 
-  apply(context: ExecutionContext): void {
-    if (!this.isVisible(context) || !this.isUsable(context)) {
-      throw new Error("Cannot apply rule");
-    }
-
-    this.actions.forEach((action) => action.execute(context));
-  }
-
-  private isAlreadyUsed(context: EvaluationContext): boolean {
-    return context.attendee.hasUsedRule(this.id);
-  }
+  // ... (apply method will be implemented in future phases)
+}
 }
 ```
 
@@ -316,7 +308,21 @@ export abstract class ConditionNode {
 }
 ```
 
-#### Leaf Conditions
+#### Currently Implemented Conditions
+
+**AlwaysTrueCondition**: A condition that always evaluates to true (for rules without conditions).
+
+```typescript
+export class AlwaysTrueCondition extends ConditionNode {
+  evaluate(): boolean {
+    return true;
+  }
+}
+```
+
+#### Planned Condition Types
+
+The following condition types are planned for future implementation:
 
 **AttributeCondition**: Checks if an attendee attribute matches an expected value.
 
@@ -343,16 +349,6 @@ export class UsedRuleCondition extends ConditionNode {
 
   evaluate(context: EvaluationContext): boolean {
     return context.attendee.hasUsedRule(this.ruleId);
-  }
-}
-```
-
-**AlwaysTrueCondition**: A condition that always evaluates to true (for rules without conditions).
-
-```typescript
-export class AlwaysTrueCondition extends ConditionNode {
-  evaluate(context: EvaluationContext): boolean {
-    return true;
   }
 }
 ```
@@ -434,6 +430,13 @@ export class MarkUsedAction extends ActionNode {
 }
 ```
 
+#### Planned Action Types
+
+Additional action types planned for future implementation:
+
+- **SetMetadataAction**: Sets specific metadata values on the attendee
+- **IncrementCounterAction**: Increments usage counters for resource tracking
+
 ### Supporting Value Objects
 
 #### TimeWindow
@@ -453,18 +456,24 @@ export class TimeWindow {
 }
 ```
 
-#### I18nText
+#### LocalizedText
 
-Handles internationalized text with fallback support.
+Handles internationalized text with fallback support using Locale enum.
 
 ```typescript
-export class I18nText {
-  constructor(private readonly translations: Map<string, string>) {}
+export class LocalizedText {
+  constructor(private readonly translations: Map<Locale, string>) {}
 
   getText(locale: string): string {
     return (
-      this.translations.get(locale) || this.translations.get("en-US") || ""
+      this.translations.get(locale as Locale) ||
+      this.translations.get(Locale.EnUs) ||
+      ""
     );
+  }
+
+  getAllTranslations(): Map<Locale, string> {
+    return new Map(this.translations);
   }
 }
 ```
@@ -525,7 +534,7 @@ export class ExecutionContext {
 - **Aggregate Pattern**: `Ruleset` as the aggregate root managing `Rule` entities
 - **Strategy Pattern**: Different condition types (`AttributeCondition`, `UsedRuleCondition`, `RoleCondition`, `StaffCondition`) and action types (`MarkUsedAction`)
 - **Composite Pattern**: `AndCondition` and `OrCondition` containing child conditions
-- **Value Object Pattern**: Immutable objects (`TimeWindow`, `I18nText`, `MetadataMapping`) for data integrity
+- **Value Object Pattern**: Immutable objects (`TimeWindow`, `LocalizedText`, `MetadataMapping`) for data integrity
 
 ## Schema
 
@@ -809,7 +818,36 @@ export class LegacyMigrationTool {
 }
 ```
 
-### Repository Interface
+### Service Layer
+
+#### RuleFactory
+
+Factory service for creating Rule entities from JSON data:
+
+```typescript
+@injectable()
+export class RuleFactory {
+  createRule(ruleId: string, ruleJson: Record<string, unknown>): Rule {
+    // Parse messages, timeWindow, conditions, metadata
+    // ...
+    return new Rule(
+      ruleId,
+      order,
+      messages,
+      timeWindow,
+      showCondition,
+      unlockCondition,
+      metadata,
+    );
+  }
+
+  createRulesFromRuleset(rulesetData: Record<string, unknown>): Map<string, Rule> {
+    // ...
+  }
+}
+```
+
+#### Repository Interface
 
 ```typescript
 export interface RulesetRepository {
@@ -817,22 +855,38 @@ export interface RulesetRepository {
 }
 
 @injectable()
-export class DurableObjectRulesetRepository implements RulesetRepository {
+export class DoRulesetRepository implements RulesetRepository {
   constructor(
     @inject(DatabaseConnectionToken)
     private readonly connection: IDatabaseConnection,
+    @inject(RuleFactoryToken)
+    private readonly ruleFactory: RuleFactory,
   ) {}
 
   async load(): Promise<Ruleset> {
-    const ruleData =
-      await this.connection.getValue<Record<string, unknown>>("rulesets");
-
+    const ruleData = await this.connection.getValue<Record<string, unknown>>("rulesets");
     if (!ruleData) {
-      return new Ruleset({});
+      return new Ruleset(new Map());
     }
+    const rules = this.ruleFactory.createRulesFromRuleset(ruleData);
+    return new Ruleset(rules);
+  }
+}
+```
 
-    // Return wrapped in Ruleset entity - simple wrapper for now
-    return new Ruleset(ruleData);
+#### RuleEvaluationService
+
+```typescript
+@injectable()
+export class RuleEvaluationService {
+  evaluateForAttendee(
+    ruleset: Ruleset, 
+    attendee: Attendee, 
+    currentTime: Date, 
+    isStaffQuery: boolean = false
+  ): EvaluationResult {
+    // Create evaluation context and evaluate all rules
+    // ...
   }
 }
 ```
@@ -850,14 +904,14 @@ export class RuleEvaluationResult {
     public readonly usable: boolean,
     public readonly used: boolean,
     public readonly usedAt: Date | null,
-    public readonly messages: Map<string, I18nText>,
+    public readonly messages: Map<string, LocalizedText>,
     public readonly attributes: Map<string, any>, // Mapped metadata
     public readonly order: number,
     public readonly timeWindow: TimeWindow,
   ) {}
 
   // Get appropriate message based on current state
-  getCurrentMessage(messageId: string): I18nText | null {
+  getCurrentMessage(messageId: string): LocalizedText | null {
     if (this.used) return this.messages.get("already_used");
     if (!this.usable) return this.messages.get("locked");
     return this.messages.get(messageId) || this.messages.get("display");
