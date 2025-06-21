@@ -22,6 +22,10 @@
       },
     ],
   },
+  "vars": {
+    "__TEST__": false,
+    "__MOCK_DATETIME__": "2023-08-26T16:00:00.000Z"
+  },
   "rules": [
     {
       "type": "Text",

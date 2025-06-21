@@ -9,6 +9,19 @@ When(
   },
 );
 
+When(
+  "I make a POST request to {string}:",
+  async function (this: World, path: string, body: string) {
+    await this.fetch(`http://127.0.0.1:8787${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: body,
+    });
+  },
+);
+
 Then(
   "the response status should be {int}",
   function (this: World, status: number) {

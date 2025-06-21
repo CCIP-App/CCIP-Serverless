@@ -84,7 +84,6 @@ Feature: Announcement
         }
       ]
       """
-  @wip
   Scenario: POST /announcement for audience
     When I make a POST request to "/announcement":
       """

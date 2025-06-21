@@ -28,6 +28,10 @@ export default class CcipServerlessWorld extends World {
       modules: true,
       compatibilityDate: "2025-06-01",
       compatibilityFlags: ["nodejs_compat"],
+      bindings: {
+        __TEST__: "true",
+        __MOCK_DATETIME__: "2023-08-26T16:00:00.000Z",
+      },
       durableObjects: {
         EVENT_DATABASE: {
           className: "EventDatabase",
