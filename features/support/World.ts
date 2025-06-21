@@ -15,11 +15,6 @@ export default class CcipServerlessWorld extends World {
 
   private readonly _miniflare: Miniflare;
   private _lastResponse: Response | null = null;
-  public ruleset?: {
-    eventId: string;
-    name: string;
-    scenarios: Record<string, any>;
-  } = undefined;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(options: any) {

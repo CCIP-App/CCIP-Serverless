@@ -4,7 +4,7 @@ Feature: Lockable Scenario
     Given there have some attendees
       | token                                | role     | metadata         | display_name | first_used_at             |
       | f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience | {"個人贊助":"Y"} | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
-    And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
+    And the ruleset config is:
       """
       {
          "vipkit":{
