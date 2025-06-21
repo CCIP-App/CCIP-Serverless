@@ -1,6 +1,7 @@
 import { ConditionNodeFactory } from "@/entity/ConditionFactory";
-import { I18nText, TimeWindow } from "@/entity/EvaluationResult";
+import { Locale, LocalizedText } from "@/entity/Locale";
 import { Rule } from "@/entity/Rule";
+import { TimeWindow } from "@/entity/TimeWindow";
 import { injectable } from "tsyringe";
 
 /**
@@ -16,11 +17,20 @@ export class RuleFactory {
     // Parse messages
     const messagesData =
       (ruleJson.messages as Record<string, Record<string, string>>) || {};
-    const messages = new Map<string, I18nText>();
+    const messages = new Map<string, LocalizedText>();
 
     for (const [messageId, translations] of Object.entries(messagesData)) {
-      const translationMap = new Map(Object.entries(translations));
-      messages.set(messageId, new I18nText(translationMap));
+      const translationMap = new Map<Locale, string>();
+
+      // Convert string keys to Locale enum values
+      for (const [localeKey, text] of Object.entries(translations)) {
+        const locale = this.parseLocale(localeKey);
+        if (locale) {
+          translationMap.set(locale, text);
+        }
+      }
+
+      messages.set(messageId, new LocalizedText(translationMap));
     }
 
     // Parse time window
@@ -76,5 +86,19 @@ export class RuleFactory {
     }
 
     return rules;
+  }
+
+  /**
+   * Parse string locale key to Locale enum value
+   */
+  private parseLocale(localeKey: string): Locale | null {
+    switch (localeKey) {
+      case "en-US":
+        return Locale.EnUs;
+      case "zh-TW":
+        return Locale.ZhTw;
+      default:
+        return null;
+    }
   }
 }

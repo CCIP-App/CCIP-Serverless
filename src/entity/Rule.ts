@@ -1,5 +1,6 @@
 import { EvaluationContext } from "@/entity/EvaluationContext";
-import { I18nText, TimeWindow } from "@/entity/EvaluationResult";
+import { LocalizedText } from "@/entity/Locale";
+import { TimeWindow } from "@/entity/TimeWindow";
 
 /**
  * Rule entity - represents a single action/resource that attendees can access
@@ -9,7 +10,7 @@ export class Rule {
   constructor(
     public readonly id: string,
     public readonly order: number,
-    public readonly messages: Map<string, I18nText>,
+    public readonly messages: Map<string, LocalizedText>,
     public readonly timeWindow: TimeWindow,
     public readonly showCondition: ConditionNode,
     public readonly unlockCondition: ConditionNode,
@@ -37,7 +38,7 @@ export class Rule {
   /**
    * Get message for a specific message ID
    */
-  getMessage(messageId: string): I18nText | null {
+  getMessage(messageId: string): LocalizedText | null {
     return this.messages.get(messageId) || null;
   }
 }
