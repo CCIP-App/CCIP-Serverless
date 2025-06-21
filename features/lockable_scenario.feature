@@ -4,30 +4,32 @@ Feature: Lockable Scenario
     Given there have some attendees
       | token                                | role     | metadata         | display_name | first_used_at             |
       | f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience | {"個人贊助":"Y"} | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
-    And the ruleset config is:
+    And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
       """
       {
          "vipkit":{
+            "version": "1.0",
             "order":0,
-            "available_time": {
-              "start": "2023-08-26 00:00:00 GMT+0",
-              "end": "2023-09-26 00:00:00 GMT+0"
+            "messages": {
+              "display": {
+                "en-US":"Special Gift",
+                "zh-TW":"獨家紀念品"
+              }
             },
-            "display_text":{
-               "en-US":"Special Gift",
-               "zh-TW":"獨家紀念品"
+            "timeWindow": {
+              "start": "2023-08-26T00:00:00Z",
+              "end": "2023-09-26T00:00:00Z"
             },
-            "locked":true,
             "conditions": {
+               "show": { "type": "AlwaysTrue" },
                "unlock": {
                   "type":"Attribute",
-                  "args":[
-                     "個人贊助",
-                     "Y"
-                   ],
-                 "reason": "For Sponsor Only"
+                  "key": "個人贊助",
+                  "value": "Y"
                }
-            }
+            },
+            "actions": [{ "type": "MarkUsed", "ruleId": "vipkit" }],
+            "metadata": {}
          }
       }
       """
@@ -67,39 +69,38 @@ Feature: Lockable Scenario
 			"""
 			{
 				"vipkit":{
+					"version": "1.0",
 					"order":0,
-          "available_time": {
-            "start": "2023-08-26 00:00:00 GMT+0",
-            "end": "2023-09-26 00:00:00 GMT+0"
-          },
-					"display_text":{
-						"en-US":"Special Gift",
-						"zh-TW":"獨家紀念品"
+					"messages": {
+					  "display": {
+						  "en-US":"Special Gift",
+						  "zh-TW":"獨家紀念品"
+					  }
 					},
-					"locked":true,
+					"timeWindow": {
+            "start": "2023-08-26T00:00:00Z",
+            "end": "2023-09-26T00:00:00Z"
+          },
 					"conditions": {
+						"show": { "type": "AlwaysTrue" },
 						"unlock": {
 							"type":"And",
-							"args":[
+							"children":[
 								{
 									"type":"Attribute",
-									"args":[
-										"個人贊助",
-										"Y"
-									],
-									"reason": "For Sponsor Only"
+									"key": "個人贊助",
+									"value": "Y"
 								},
 								{
 									"type":"Attribute",
-									"args":[
-										"_sponsor",
-										"Y"
-									],
-									"reason": "For Sponsor Only"
+									"key": "_sponsor",
+									"value": "Y"
 								}
 							]
 						}
-					}
+					},
+					"actions": [{ "type": "MarkUsed", "ruleId": "vipkit" }],
+					"metadata": {}
 				}
 			}
 			"""
@@ -139,39 +140,38 @@ Feature: Lockable Scenario
 			"""
 			{
 				"vipkit":{
+					"version": "1.0",
 					"order":0,
-          "available_time": {
-            "start": "2023-08-26 00:00:00 GMT+0",
-            "end": "2023-09-26 00:00:00 GMT+0"
-          },
-					"display_text":{
-						"en-US":"Special Gift",
-						"zh-TW":"獨家紀念品"
+					"messages": {
+					  "display": {
+						  "en-US":"Special Gift",
+						  "zh-TW":"獨家紀念品"
+					  }
 					},
-					"locked":true,
+					"timeWindow": {
+            "start": "2023-08-26T00:00:00Z",
+            "end": "2023-09-26T00:00:00Z"
+          },
 					"conditions": {
+						"show": { "type": "AlwaysTrue" },
 						"unlock": {
 							"type":"Or",
-							"args":[
+							"children":[
 								{
 									"type":"Attribute",
-									"args":[
-										"個人贊助",
-										"Y"
-									],
-									"reason": "For Sponsor Only"
+									"key": "個人贊助",
+									"value": "Y"
 								},
 								{
 									"type":"Attribute",
-									"args":[
-										"_sponsor",
-										"Y"
-									],
-									"reason": "For Sponsor Only"
+									"key": "_sponsor",
+									"value": "Y"
 								}
 							]
 						}
-					}
+					},
+					"actions": [{ "type": "MarkUsed", "ruleId": "vipkit" }],
+					"metadata": {}
 				}
 			}
 			"""

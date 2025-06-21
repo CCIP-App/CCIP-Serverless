@@ -4,19 +4,28 @@ Feature: Scenario
     Given there have some attendees
       | token                                | role     | display_name | first_used_at             |
       | f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
-    And the ruleset config is:
+    And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
       """
       {
         "day1checkin": {
+          "version": "1.0",
           "order": 0,
-          "available_time": {
-            "start": "2023-08-26 00:00:00 GMT+0",
-            "end": "2023-09-26 00:00:00 GMT+0"
+          "messages": {
+            "display": {
+              "en-US": "Day 1 Check-in",
+              "zh-TW": "第一天報到"
+            }
           },
-          "display_text": {
-            "en-US": "Day 1 Check-in",
-            "zh-TW": "第一天報到"
-          }
+          "timeWindow": {
+            "start": "2023-08-26T00:00:00Z",
+            "end": "2023-09-26T00:00:00Z"
+          },
+          "conditions": {
+            "show": { "type": "AlwaysTrue" },
+            "unlock": { "type": "AlwaysTrue" }
+          },
+          "actions": [{ "type": "MarkUsed", "ruleId": "day1checkin" }],
+          "metadata": {}
         }
       }
       """
@@ -51,48 +60,56 @@ Feature: Scenario
     Given there have some attendees
       | token                                | role     | metadata        | display_name | first_used_at             |
       | f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience | {"講師票": "N"} | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
-    And the ruleset config is:
+    And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
       """
         {
            "speakerCheckin":{
+              "version": "1.0",
               "order":0,
-                "available_time": {
-                  "start": "2023-08-26 00:00:00 GMT+0",
-                  "end": "2023-09-26 00:00:00 GMT+0"
-                },
-                "display_text":{
-                 "en-US":"Speaker Check-in",
-                 "zh-TW":"講師報到"
+              "messages": {
+                "display": {
+                  "en-US":"Speaker Check-in",
+                  "zh-TW":"講師報到"
+                }
+              },
+              "timeWindow": {
+                "start": "2023-08-26T00:00:00Z",
+                "end": "2023-09-26T00:00:00Z"
               },
               "conditions":{
                  "show":{
                     "type":"Attribute",
-                    "args":[
-                       "講師票",
-                       "Y"
-                    ]
-                }
-              }
+                    "key": "講師票",
+                    "value": "Y"
+                },
+                "unlock": { "type": "AlwaysTrue" }
+              },
+              "actions": [{ "type": "MarkUsed", "ruleId": "speakerCheckin" }],
+              "metadata": {}
            },
            "normalCheckin":{
+              "version": "1.0",
               "order":1,
-              "available_time": {
-                "start": "2023-08-26 00:00:00 GMT+0",
-                "end": "2023-09-26 00:00:00 GMT+0"
+              "messages": {
+                "display": {
+                  "en-US":"Normal Check-in",
+                  "zh-TW":"一般報到"
+                }
               },
-              "display_text":{
-                 "en-US":"Normal Check-in",
-                 "zh-TW":"一般報到"
+              "timeWindow": {
+                "start": "2023-08-26T00:00:00Z",
+                "end": "2023-09-26T00:00:00Z"
               },
               "conditions":{
                  "show": {
                     "type":"Attribute",
-                    "args":[
-                       "講師票",
-                       "N"
-                    ]
-                 }
-              }
+                    "key": "講師票",
+                    "value": "N"
+                 },
+                 "unlock": { "type": "AlwaysTrue" }
+              },
+              "actions": [{ "type": "MarkUsed", "ruleId": "normalCheckin" }],
+              "metadata": {}
            }
         }
       """
