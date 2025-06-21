@@ -56,4 +56,13 @@ export class EventDatabase extends DurableObject implements DurableDatabase {
     // Simple execution without refreshing expiration
     return this._connection.all(rawSql);
   }
+
+  async getValue<T>(key: string): Promise<T | null> {
+    const value = await this._storage.get(key);
+    return value as T | null;
+  }
+
+  async setValue<T>(key: string, value: T): Promise<void> {
+    await this._storage.put(key, value);
+  }
 }

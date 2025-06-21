@@ -1,14 +1,20 @@
 import { SQLWrapper } from "drizzle-orm";
 import { SQLiteDialect, SQLiteSyncDialect } from "drizzle-orm/sqlite-core";
-import { IDatabaseConnection } from "./DatabaseConnection";
+import {
+  IKvDatabaseConnection,
+  ISqlDatabaseConnection,
+} from "./DatabaseConnection";
 
 export interface DurableDatabase {
   executeAll<T>(raw: string): Promise<T[]>;
+  getValue<T>(key: string): Promise<T | null>;
+  setValue<T>(key: string, value: T): Promise<void>;
 }
 
 export class DatabaseConnector<
-  T extends Rpc.DurableObjectBranded & DurableDatabase,
-> implements IDatabaseConnection
+    T extends Rpc.DurableObjectBranded & DurableDatabase,
+  >
+  implements ISqlDatabaseConnection, IKvDatabaseConnection
 {
   private readonly dialect: SQLiteDialect = new SQLiteSyncDialect();
 
@@ -28,5 +34,13 @@ export class DatabaseConnector<
     const { sql } = this.dialect.sqlToQuery(theSQL.inlineParams());
 
     return this.database.executeAll(sql);
+  }
+
+  async getValue<T>(key: string): Promise<T | null> {
+    return this.database.getValue(key);
+  }
+
+  async setValue<T>(key: string, value: T): Promise<void> {
+    return this.database.setValue(key, value);
   }
 }

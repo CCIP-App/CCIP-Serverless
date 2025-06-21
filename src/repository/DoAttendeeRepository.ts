@@ -1,7 +1,7 @@
 import { Attendee, AttendeeRole } from "@/entity/Attendee";
 import {
   DatabaseConnectionToken,
-  IDatabaseConnection,
+  ISqlDatabaseConnection,
 } from "@/infra/DatabaseConnection";
 import { AttendeeRepository } from "@/usecase/interface";
 import { createHash } from "crypto";
@@ -20,7 +20,7 @@ type AttendeeSchema = {
 export class DoAttendeeRepository implements AttendeeRepository {
   constructor(
     @inject(DatabaseConnectionToken)
-    private readonly connection: IDatabaseConnection,
+    private readonly connection: ISqlDatabaseConnection,
   ) {}
 
   async findAttendeeByToken(token: string): Promise<Attendee | null> {

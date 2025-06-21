@@ -3,7 +3,7 @@ import { AttendeeRole } from "@/entity/Attendee";
 import { Locale } from "@/entity/Locale";
 import {
   DatabaseConnectionToken,
-  IDatabaseConnection,
+  ISqlDatabaseConnection,
 } from "@/infra/DatabaseConnection";
 import { AnnouncementRepository } from "@/usecase/interface";
 import { sql } from "drizzle-orm";
@@ -21,7 +21,7 @@ type AnnouncementSchema = {
 export class DoAnnouncementRepository implements AnnouncementRepository {
   constructor(
     @inject(DatabaseConnectionToken)
-    private readonly connection: IDatabaseConnection,
+    private readonly connection: ISqlDatabaseConnection,
   ) {}
 
   async findAnnouncementsByRole(role: AttendeeRole): Promise<Announcement[]> {
