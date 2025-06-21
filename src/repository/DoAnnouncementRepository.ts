@@ -1,4 +1,5 @@
-import { Announcement, AnnouncementLocale } from "@/entity/Announcement";
+import { Announcement } from "@/entity/Announcement";
+import { Locale } from "@/entity/Locale";
 import { AttendeeRole } from "@/entity/Attendee";
 import {
   DatabaseConnectionToken,
@@ -42,11 +43,11 @@ export class DoAnnouncementRepository implements AnnouncementRepository {
     const messages = announcement.allMessages();
     const formattedMessages: Record<string, string> = {};
 
-    if (messages[AnnouncementLocale.EN]) {
-      formattedMessages["en-US"] = messages[AnnouncementLocale.EN];
+    if (messages[Locale.EnUs]) {
+      formattedMessages["en-US"] = messages[Locale.EnUs];
     }
-    if (messages[AnnouncementLocale.ZH_TW]) {
-      formattedMessages["zh-TW"] = messages[AnnouncementLocale.ZH_TW];
+    if (messages[Locale.ZhTw]) {
+      formattedMessages["zh-TW"] = messages[Locale.ZhTw];
     }
 
     await this.connection.executeAll(sql`
@@ -69,10 +70,10 @@ export class DoAnnouncementRepository implements AnnouncementRepository {
         ? row.message
         : JSON.parse(row.message as string);
     if (messages["en-US"]) {
-      announcement.setMessage(AnnouncementLocale.EN, messages["en-US"]);
+      announcement.setMessage(Locale.EnUs, messages["en-US"]);
     }
     if (messages["zh-TW"]) {
-      announcement.setMessage(AnnouncementLocale.ZH_TW, messages["zh-TW"]);
+      announcement.setMessage(Locale.ZhTw, messages["zh-TW"]);
     }
 
     // Set publication time

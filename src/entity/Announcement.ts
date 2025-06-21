@@ -1,12 +1,8 @@
 import { AttendeeRole } from "./Attendee";
-
-export enum AnnouncementLocale {
-  ZH_TW = "zh-TW",
-  EN = "en",
-}
+import { Locale } from "./Locale";
 
 export class Announcement {
-  private messages: Map<AnnouncementLocale, string> = new Map();
+  private messages: Map<Locale, string> = new Map();
   private _publishedAt?: Date;
   private _readableByRoles: Set<AttendeeRole> = new Set();
 
@@ -15,17 +11,17 @@ export class Announcement {
     public readonly uri: string,
   ) {}
 
-  setMessage(locale: AnnouncementLocale, content: string): void {
+  setMessage(locale: Locale, content: string): void {
     this.messages.set(locale, content);
   }
 
-  getMessage(locale: AnnouncementLocale): string | undefined {
+  getMessage(locale: Locale): string | undefined {
     return this.messages.get(locale);
   }
 
-  allMessages(): Record<AnnouncementLocale, string> {
-    const result: Record<AnnouncementLocale, string> = {} as Record<
-      AnnouncementLocale,
+  allMessages(): Record<Locale, string> {
+    const result: Record<Locale, string> = {} as Record<
+      Locale,
       string
     >;
     for (const [locale, content] of this.messages) {

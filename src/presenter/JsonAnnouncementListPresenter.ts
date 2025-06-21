@@ -1,4 +1,5 @@
-import { Announcement, AnnouncementLocale } from "@/entity/Announcement";
+import { Announcement } from "@/entity/Announcement";
+import { Locale } from "@/entity/Locale";
 import { AnnouncementListPresenter } from "@/usecase/interface";
 
 export type AnnouncementData = {
@@ -22,8 +23,8 @@ export class JsonAnnouncementListPresenter
       datetime: announcement.publishedAt
         ? Math.floor(announcement.publishedAt.getTime() / 1000)
         : 0,
-      msgEn: announcement.getMessage(AnnouncementLocale.EN) || "",
-      msgZh: announcement.getMessage(AnnouncementLocale.ZH_TW) || "",
+      msgEn: announcement.getMessage(Locale.EnUs) || "",
+      msgZh: announcement.getMessage(Locale.ZhTw) || "",
       uri: announcement.uri,
     }));
   }

@@ -1,4 +1,5 @@
-import { Announcement, AnnouncementLocale } from "@/entity/Announcement";
+import { Announcement } from "@/entity/Announcement";
+import { Locale } from "@/entity/Locale";
 import { AttendeeRole } from "@/entity/Attendee";
 import { AnnouncementRepository, IDatetimeService } from "@/usecase/interface";
 import { randomUUID } from "crypto";
@@ -17,8 +18,8 @@ export class CreateAnnouncementCommand {
   ): Promise<void> {
     const announcement = new Announcement(randomUUID(), uri);
 
-    announcement.setMessage(AnnouncementLocale.EN, msgEn);
-    announcement.setMessage(AnnouncementLocale.ZH_TW, msgZh);
+    announcement.setMessage(Locale.EnUs, msgEn);
+    announcement.setMessage(Locale.ZhTw, msgZh);
 
     const currentTime = this.datetimeService.getCurrentTime();
     announcement.publish(currentTime);
