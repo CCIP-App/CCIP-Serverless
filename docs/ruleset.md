@@ -841,7 +841,9 @@ export class RuleFactory {
     );
   }
 
-  createRulesFromRuleset(rulesetData: Record<string, unknown>): Map<string, Rule> {
+  createRulesFromRuleset(
+    rulesetData: Record<string, unknown>,
+  ): Map<string, Rule> {
     // ...
   }
 }
@@ -864,7 +866,8 @@ export class DoRulesetRepository implements RulesetRepository {
   ) {}
 
   async load(): Promise<Ruleset> {
-    const ruleData = await this.connection.getValue<Record<string, unknown>>("rulesets");
+    const ruleData =
+      await this.connection.getValue<Record<string, unknown>>("rulesets");
     if (!ruleData) {
       return new Ruleset(new Map());
     }
@@ -880,10 +883,10 @@ export class DoRulesetRepository implements RulesetRepository {
 @injectable()
 export class RuleEvaluationService {
   evaluateForAttendee(
-    ruleset: Ruleset, 
-    attendee: Attendee, 
-    currentTime: Date, 
-    isStaffQuery: boolean = false
+    ruleset: Ruleset,
+    attendee: Attendee,
+    currentTime: Date,
+    isStaffQuery: boolean = false,
   ): EvaluationResult {
     // Create evaluation context and evaluate all rules
     // ...
