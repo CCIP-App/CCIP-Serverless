@@ -59,7 +59,8 @@ export class JsonAttendeeStatusPresenter implements AttendeeStatusPresenter {
     const visibleRules = this.evaluationResult.getVisibleRules();
 
     for (const ruleResult of visibleRules) {
-      const displayMessage = ruleResult.getCurrentMessage("display");
+      // Always get the display message, regardless of rule state
+      const displayMessage = ruleResult.messages.get("display");
       const displayText: Record<string, string> = {};
 
       if (displayMessage) {
@@ -77,7 +78,7 @@ export class JsonAttendeeStatusPresenter implements AttendeeStatusPresenter {
           ruleResult.used && ruleResult.usedAt
             ? Math.floor(ruleResult.usedAt.getTime() / 1000)
             : null,
-        disabled: !ruleResult.usable ? "locked" : null,
+        disabled: ruleResult.isDisabled() ? "locked" : null,
         attr: Object.fromEntries(ruleResult.attributes),
       };
     }
@@ -88,6 +89,16 @@ export class JsonAttendeeStatusPresenter implements AttendeeStatusPresenter {
   private getAttendeeAttributes(): Record<string, unknown> {
     if (!this.attendee) return {};
 
-    return this.attendee.metadata || {};
+    // Filter out rule usage metadata (keys starting with "_rule_")
+    const filteredAttributes: Record<string, unknown> = {};
+    const metadata = this.attendee.metadata || {};
+
+    for (const [key, value] of Object.entries(metadata)) {
+      if (!key.startsWith("_rule_")) {
+        filteredAttributes[key] = value;
+      }
+    }
+
+    return filteredAttributes;
   }
 }

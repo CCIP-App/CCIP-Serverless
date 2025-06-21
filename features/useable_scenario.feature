@@ -1,5 +1,4 @@
 Feature: Useable Scenario
-  @wip
   Scenario: When scenario is used get status can see used time
     Given there have some attendees
       | token                                | role     | metadata                                            | display_name | first_used_at             |
@@ -87,7 +86,6 @@ Feature: Useable Scenario
 		When I make a GET request to "/use/checkin?token=f185f505-d8c0-43ce-9e7b-bb9e8909072d"
 		Then the response status should be 200
 		And the response json should have property "scenario.checkin.used" is not null
-	@wip
 	Scenario: When attendee use checkin scenario and unlock welcom kit
     Given there have some attendees
       | token                                | role     | metadata | display_name | first_used_at             |

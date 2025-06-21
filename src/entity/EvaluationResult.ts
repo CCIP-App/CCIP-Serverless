@@ -25,6 +25,14 @@ export class RuleEvaluationResult {
     if (!this.usable) return this.messages.get("locked") || null;
     return this.messages.get(messageId) || this.messages.get("display") || null;
   }
+
+  /**
+   * Check if this rule should be marked as disabled
+   * Rules are disabled when they're not usable but haven't been used yet
+   */
+  isDisabled(): boolean {
+    return !this.usable && !this.used;
+  }
 }
 
 /**
