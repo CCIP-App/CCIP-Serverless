@@ -843,36 +843,90 @@ export class DurableObjectRulesetRepository implements RulesetRepository {
 }
 ```
 
+### EvaluationResult Value Objects
+
+The ruleset system uses value objects to encapsulate rule evaluation state and provide type-safe access to scenario data.
+
+```typescript
+// Value object representing the result of evaluating a single rule
+export class RuleEvaluationResult {
+  constructor(
+    public readonly ruleId: string,
+    public readonly visible: boolean,
+    public readonly usable: boolean,
+    public readonly used: boolean,
+    public readonly usedAt: Date | null,
+    public readonly messages: Map<string, I18nText>,
+    public readonly attributes: Map<string, any>, // Mapped metadata
+    public readonly order: number,
+    public readonly timeWindow: TimeWindow,
+  ) {}
+
+  // Get appropriate message based on current state
+  getCurrentMessage(messageId: string): I18nText | null {
+    if (this.used) return this.messages.get("already_used");
+    if (!this.usable) return this.messages.get("locked");
+    return this.messages.get(messageId) || this.messages.get("display");
+  }
+}
+
+// Aggregate result for all rules evaluated for an attendee
+export class EvaluationResult {
+  constructor(private readonly results: Map<string, RuleEvaluationResult>) {}
+
+  // Get all visible rules sorted by order
+  getVisibleRules(): RuleEvaluationResult[] {
+    return Array.from(this.results.values())
+      .filter((result) => result.visible)
+      .sort((a, b) => a.order - b.order);
+  }
+
+  // Get specific rule result
+  getRule(ruleId: string): RuleEvaluationResult | null {
+    return this.results.get(ruleId) || null;
+  }
+
+  // Check if any rules are available for use
+  hasUsableRules(): boolean {
+    return Array.from(this.results.values()).some(
+      (result) => result.visible && result.usable,
+    );
+  }
+}
+```
+
 ### Use Case Implementation
 
 ```typescript
-// Query for displaying available rules
-export class GetAvailableRulesQuery {
+// Query for displaying available rules using EvaluationResult
+export class GetAttendeeStatusQuery {
   constructor(
-    private readonly repository: RulesetRepository,
-    private readonly presenter: RuleListPresenter,
+    private readonly attendeeRepository: AttendeeRepository,
+    private readonly rulesetRepository: RulesetRepository,
+    private readonly evaluationService: RuleEvaluationService,
+    private readonly presenter: AttendeeStatusPresenter,
   ) {}
 
-  async execute(attendee: Attendee, currentTime: Date): Promise<void> {
-    const rulesets = await this.repository.load();
-    const roleRuleset = rulesets.get(attendee.role);
+  async execute(token: string, isStaffQuery = false): Promise<void> {
+    // Load attendee
+    const attendee = await this.attendeeRepository.findAttendeeByToken(token);
+    if (!attendee) throw new Error("Attendee not found");
 
-    if (!roleRuleset) {
-      this.presenter.presentEmpty();
-      return;
+    // Auto check-in logic
+    if (!isStaffQuery && !attendee.firstUsedAt) {
+      attendee.checkIn(new Date());
+      await this.attendeeRepository.save(attendee);
     }
 
-    const context = new EvaluationContext(attendee, currentTime);
-    const availableRules = roleRuleset.evaluate(context);
+    // Generate evaluation result
+    const evaluationResult = await this.evaluationService.evaluateForAttendee(
+      attendee,
+      isStaffQuery,
+    );
 
-    // TODO: Format rules for display
-    // - Check usability status
-    // - Apply metadata mappings
-    // - Sort by order
-
-    availableRules.forEach((rule, id) => {
-      this.presenter.addRule(/* formatted rule data */);
-    });
+    // Pass to presenter
+    this.presenter.setAttendee(attendee);
+    this.presenter.setEvaluationResult(evaluationResult);
   }
 }
 
@@ -898,21 +952,70 @@ export class UseRuleCommand {
 ```typescript
 @injectable()
 export class RuleEvaluationService {
-  evaluate(
-    ruleset: Ruleset,
-    context: EvaluationContext,
-  ): Map<string, RuleStatus> {
-    // TODO: Evaluate all rules in ruleset
-    // TODO: Return status map with visibility/usability info
+  constructor(
+    @inject(RulesetRepositoryToken)
+    private readonly rulesetRepository: RulesetRepository,
+    @inject(DatetimeServiceToken)
+    private readonly datetimeService: IDatetimeService,
+  ) {}
+
+  async evaluateForAttendee(
+    attendee: Attendee,
+    isStaffQuery: boolean = false,
+  ): Promise<EvaluationResult> {
+    // 1. Load ruleset for attendee's role
+    const rulesets = await this.rulesetRepository.load();
+    const roleRuleset = rulesets.get(attendee.role);
+
+    if (!roleRuleset) {
+      return new EvaluationResult(new Map()); // Empty result
+    }
+
+    // 2. Create evaluation context
+    const currentTime = this.datetimeService.getCurrentTime();
+    const context = new EvaluationContext(attendee, currentTime, isStaffQuery);
+
+    // 3. Evaluate each rule in the ruleset
+    const results = new Map<string, RuleEvaluationResult>();
+
+    roleRuleset.getAllRules().forEach((rule, ruleId) => {
+      const ruleResult = this.evaluateRule(rule, context);
+      results.set(ruleId, ruleResult);
+    });
+
+    return new EvaluationResult(results);
   }
 
-  evaluateRule(rule: Rule, context: EvaluationContext): RuleStatus {
-    return {
-      visible: rule.isVisible(context),
-      usable: rule.isUsable(context),
-      used: context.attendee.hasUsedRule(rule.id),
-      // TODO: Add more status fields
-    };
+  private evaluateRule(
+    rule: Rule,
+    context: EvaluationContext,
+  ): RuleEvaluationResult {
+    // Check visibility
+    const visible = rule.isVisible(context);
+
+    // Check usability (only if visible)
+    const usable = visible ? rule.isUsable(context) : false;
+
+    // Check usage status
+    const used = context.attendee.hasUsedRule(rule.id);
+    const usedAt = used ? context.attendee.getRuleUsedAt(rule.id) : null;
+
+    // Apply metadata mapping
+    const attributes = rule.metadataMapping.applyToDisplay(
+      context.attendee.getMetadata(),
+    );
+
+    return new RuleEvaluationResult(
+      rule.id,
+      visible,
+      usable,
+      used,
+      usedAt,
+      rule.messages,
+      attributes,
+      rule.order,
+      rule.timeWindow,
+    );
   }
 }
 
@@ -927,6 +1030,91 @@ export class DatetimeService implements IDatetimeService {
   }
 }
 ```
+
+### EvaluationResult Generation Flow
+
+The `EvaluationResult` is generated through a systematic evaluation process that combines domain logic, AST evaluation, and metadata mapping.
+
+#### Generation Process
+
+```
+1. Controller receives request
+2. Use Case loads attendee + calls evaluation service
+3. Service loads ruleset from repository
+4. Service creates evaluation context
+5. Service evaluates each rule:
+   - Rule checks visibility (showCondition.evaluate())
+   - Rule checks usability (unlockCondition.evaluate() + time + usage)
+   - Service applies metadata mapping
+   - Service creates RuleEvaluationResult
+6. Service creates EvaluationResult from all rule results
+7. Use Case passes EvaluationResult to presenter
+8. Presenter converts to API format
+```
+
+#### Key Generation Components
+
+**Context Creation**: Combines attendee state, current time, and staff query flag for rule evaluation.
+
+```typescript
+// Create evaluation context with all necessary data
+const currentTime = this.datetimeService.getCurrentTime();
+const context = new EvaluationContext(attendee, currentTime, isStaffQuery);
+```
+
+**AST Evaluation**: Each condition node evaluates against the context using the Strategy pattern.
+
+```typescript
+// Condition nodes implement evaluation logic
+export class AttributeCondition extends ConditionNode {
+  evaluate(context: EvaluationContext): boolean {
+    return (
+      context.attendee.getMetadata(this.attributeKey) === this.expectedValue
+    );
+  }
+}
+
+export class AndCondition extends ConditionNode {
+  evaluate(context: EvaluationContext): boolean {
+    return this.children.every((child) => child.evaluate(context));
+  }
+}
+```
+
+**State Aggregation**: Service combines visibility, usability, and usage status into immutable result objects.
+
+```typescript
+// Aggregate all evaluation states
+return new RuleEvaluationResult(
+  rule.id,
+  visible, // Can attendee see this rule?
+  usable, // Can attendee use this rule right now?
+  used, // Has attendee already used this rule?
+  usedAt, // When was it used (if applicable)?
+  rule.messages, // All i18n messages for different states
+  attributes, // Mapped metadata for display
+  rule.order, // Display order
+  rule.timeWindow, // Availability window
+);
+```
+
+**Metadata Mapping**: Transforms attendee attributes to display format for API responses.
+
+```typescript
+// Apply metadata mapping for display
+const attributes = rule.metadataMapping.applyToDisplay(
+  context.attendee.getMetadata(),
+);
+// attendee.metadata["飲食"] -> scenario.attr["diet"]
+```
+
+#### Benefits of this Approach
+
+- **Immutable Results**: `EvaluationResult` provides read-only access to computed state
+- **Type Safety**: Eliminates `Record<string, any>` in favor of structured data
+- **Domain Logic Encapsulation**: All rule evaluation logic stays in domain entities
+- **Separation of Concerns**: Service orchestrates evaluation, entities handle business rules
+- **Testability**: Each component can be tested independently with mock contexts
 
 ### API Integration
 
