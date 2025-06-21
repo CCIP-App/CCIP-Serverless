@@ -584,3 +584,95 @@ BDD testing with Cucumber.js:
 - **ESLint**: TypeScript and React configurations
 - **Prettier**: With organize-imports plugin
 - **Path aliases**: Use `@/` prefix for src imports
+
+## Complex Feature Design: Ruleset System
+
+The ruleset system is one of the most complex features in CCIP Serverless. It implements a flexible rule engine for event attendee interactions using an AST-based approach.
+
+### Understanding the Design
+
+**Core Concept**: The system replaces hardcoded event logic with configurable rules that control what attendees can do, when they can do it, and how many times actions can be performed.
+
+**Key Components**:
+
+- **Ruleset**: Aggregate root that manages a collection of rules
+- **Rule**: Individual action/resource with visibility and usability logic
+- **Conditions**: AST nodes implementing Strategy + Composite patterns
+- **Actions**: Operations executed when rules are used
+
+### Architectural Decisions
+
+**1. AST-Based Condition System**:
+
+- Uses polymorphic JSON structure with `type` field
+- Factory pattern for creating condition nodes from JSON
+- Supports complex logic with And/Or composite conditions
+- Extensible for future condition types
+
+**2. Flexible Message System**:
+
+- Rules use `messages: Map<string, I18nText>` instead of fixed fields
+- Different messages for different states (display, locked, expired, etc.)
+- All locales returned in API responses
+
+**3. State Storage in Attendee Metadata**:
+
+- Rule usage tracked via `_rule_{id}` keys in attendee metadata
+- Denormalized for performance (no separate state table)
+- Atomic updates with attendee data
+
+**4. Durable Object KV Storage**:
+
+- Each event has isolated ruleset storage
+- Single KV entry for atomic updates: `durableObject.set("rulesets", data)`
+- Role-based organization at top level
+
+### Implementation Guidance
+
+**When implementing the ruleset system:**
+
+1. **Start with the Domain Model**: Implement entities before infrastructure
+2. **Use Factory Pattern**: ConditionNodeFactory for parsing JSON to domain objects
+3. **Leverage DI**: RulesetRepository as interface with DO implementation
+4. **Follow Clean Architecture**: Use cases orchestrate, presenters format output
+5. **Test with BDD**: Missing step definition for ruleset setup needs implementation
+
+**Key Condition Types**:
+
+- `AlwaysTrue`: No conditions
+- `Attribute`: Check attendee metadata
+- `UsedRule`: Check if another rule was used
+- `Role`: Check attendee role
+- `Staff`: Check if staff query mode
+- `And`/`Or`: Composite conditions
+
+**Critical Patterns**:
+
+```typescript
+// Evaluation context includes staff query flag
+const context = new EvaluationContext(attendee, currentTime, isStaffQuery);
+
+// Rules evaluate visibility and usability separately
+if (rule.isVisible(context) && rule.isUsable(context)) {
+  rule.apply(new ExecutionContext(attendee, currentTime));
+}
+
+// State stored in attendee metadata
+attendee.setMetadata(`_rule_${ruleId}`, timestamp.toString());
+```
+
+### Common Pitfalls to Avoid
+
+1. **Don't hardcode messages**: Use flexible message system with IDs
+2. **Don't forget staff mode**: Include isStaffQuery in evaluation context
+3. **Don't mix concerns**: Keep AST parsing separate from domain logic
+4. **Don't skip factory pattern**: Always use factories for JSON→Domain conversion
+
+### Testing Considerations
+
+- The `@wip` tag on scenario features indicates work in progress
+- Legacy format migration tool needed for test compatibility
+- Mock datetime crucial for predictable test results
+- Step definition for ruleset creation is missing and needs implementation
+
+For detailed design documentation, see `docs/ruleset.md`.
