@@ -1,5 +1,6 @@
 import { Announcement } from "@/entity/Announcement";
 import { Attendee, AttendeeRole } from "@/entity/Attendee";
+import { EvaluationResult } from "@/entity/EvaluationResult";
 
 export const AttendeeRepositoryToken = Symbol("AttendeeRepository");
 
@@ -27,6 +28,22 @@ export const AttendeeStatusPresenterToken = Symbol("AttendeeStatusPresenter");
 
 export interface AttendeeStatusPresenter {
   setAttendee(attendee: Attendee): void;
+  setEvaluationResult(evaluationResult: EvaluationResult): void;
+}
+
+export const RulesetRepositoryToken = Symbol("RulesetRepository");
+
+export interface RulesetRepository {
+  findRulesetByRole(eventName: string, role: string): Promise<any>; // TODO: Replace with proper Ruleset domain object
+}
+
+export const RuleEvaluationServiceToken = Symbol("RuleEvaluationService");
+
+export interface RuleEvaluationService {
+  evaluateForAttendee(
+    attendee: Attendee,
+    isStaffQuery: boolean,
+  ): Promise<EvaluationResult>;
 }
 
 export const DatetimeServiceToken = Symbol("DatetimeService");

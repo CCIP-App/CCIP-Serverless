@@ -49,4 +49,18 @@ export class Attendee {
   setAllMetadata(metadata: Record<string, MetadataValue>): void {
     this._metadata = metadata || {};
   }
+
+  hasUsedRule(ruleId: string): boolean {
+    const ruleKey = `_rule_${ruleId}`;
+    return this._metadata[ruleKey] !== undefined && this._metadata[ruleKey] !== null;
+  }
+
+  getRuleUsedAt(ruleId: string): Date | null {
+    const ruleKey = `_rule_${ruleId}`;
+    const timestamp = this._metadata[ruleKey];
+    if (typeof timestamp === "string" || typeof timestamp === "number") {
+      return new Date(Number(timestamp) * 1000);
+    }
+    return null;
+  }
 }

@@ -1,4 +1,5 @@
 import { Attendee } from "@/entity/Attendee";
+import { EvaluationResult } from "@/entity/EvaluationResult";
 import { AttendeeStatusPresenter } from "@/usecase/interface";
 
 export interface AttendeeStatusData {
@@ -22,29 +23,64 @@ export interface ScenarioData {
 
 export class JsonAttendeeStatusPresenter implements AttendeeStatusPresenter {
   private attendee?: Attendee;
-  private scenarios: Record<string, ScenarioData> = {};
+  private evaluationResult?: EvaluationResult;
 
   setAttendee(attendee: Attendee): void {
     this.attendee = attendee;
   }
 
-  setScenarios(scenarios: Record<string, ScenarioData>): void {
-    this.scenarios = scenarios;
+  setEvaluationResult(evaluationResult: EvaluationResult): void {
+    this.evaluationResult = evaluationResult;
   }
+
 
   toJson(): AttendeeStatusData {
     if (!this.attendee) {
       throw new Error("No attendee set");
     }
 
+    const scenarios = this.buildScenariosFromEvaluationResult();
+
     return {
       public_token: this.attendee.publicToken,
       user_id: this.attendee.displayName,
       first_use: this.attendee.firstUsedAt,
       role: this.attendee.role,
-      scenario: this.scenarios,
+      scenario: scenarios,
       attr: this.getAttendeeAttributes(),
     };
+  }
+
+  private buildScenariosFromEvaluationResult(): Record<string, ScenarioData> {
+    if (!this.evaluationResult) {
+      return {};
+    }
+
+    const scenarios: Record<string, ScenarioData> = {};
+    const visibleRules = this.evaluationResult.getVisibleRules();
+
+    for (const ruleResult of visibleRules) {
+      const displayMessage = ruleResult.getCurrentMessage("display");
+      const displayText: Record<string, string> = {};
+      
+      if (displayMessage) {
+        for (const [locale, text] of displayMessage.getAllTranslations()) {
+          displayText[locale] = text;
+        }
+      }
+
+      scenarios[ruleResult.ruleId] = {
+        order: ruleResult.order,
+        available_time: ruleResult.timeWindow.getStartTimestamp(),
+        expire_time: ruleResult.timeWindow.getEndTimestamp(),
+        display_text: displayText,
+        used: ruleResult.used && ruleResult.usedAt ? Math.floor(ruleResult.usedAt.getTime() / 1000) : null,
+        disabled: !ruleResult.usable ? "locked" : null,
+        attr: Object.fromEntries(ruleResult.attributes),
+      };
+    }
+
+    return scenarios;
   }
 
   private getAttendeeAttributes(): Record<string, unknown> {

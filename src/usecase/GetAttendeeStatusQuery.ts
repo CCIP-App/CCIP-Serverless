@@ -1,8 +1,13 @@
-import { AttendeeRepository, AttendeeStatusPresenter } from "./interface";
+import { 
+  AttendeeRepository, 
+  AttendeeStatusPresenter,
+  RuleEvaluationService,
+} from "./interface";
 
 export class GetAttendeeStatusQuery {
   constructor(
     private readonly attendeeRepository: AttendeeRepository,
+    private readonly ruleEvaluationService: RuleEvaluationService,
     private readonly presenter: AttendeeStatusPresenter,
   ) {}
 
@@ -18,6 +23,13 @@ export class GetAttendeeStatusQuery {
       await this.attendeeRepository.save(attendee);
     }
 
+    // Generate evaluation result
+    const evaluationResult = await this.ruleEvaluationService.evaluateForAttendee(
+      attendee,
+      isStaffQuery,
+    );
+
     this.presenter.setAttendee(attendee);
+    this.presenter.setEvaluationResult(evaluationResult);
   }
 }
