@@ -139,28 +139,32 @@ Feature: Scenario
         }
       }
       """
-  @wip
   Scenario: A scenario configured with extra metadata attached
   	Given there have some attendees
 			| token                                | role     | metadata                      | display_name | first_used_at             |
 			| f185f505-d8c0-43ce-9e7b-bb9e8909072d | audience | {"飲食": "葷"} | Aotoki       | 2023-08-20 00:00:00 GMT+0 |
-		And there have a ruleset for "SITCON2023" with name "audience" and scenarios:
+		And the ruleset is:
 			"""
 				{
 					 "lunch":{
+							"version": "1.0",
 							"order":0,
-              "available_time": {
-                "start": "2023-08-26 00:00:00 GMT+0",
-                "end": "2023-09-26 00:00:00 GMT+0"
-              },
-							"display_text":{
-								 "en-US":"Lunch",
-								 "zh-TW":"午餐"
+							"messages": {
+								"display": {
+									"en-US": "Lunch",
+									"zh-TW": "午餐"
+								}
 							},
-							"conditions":{},
-							"metadata": {
-								"diet": { "key": "飲食" }
-							}
+							"timeWindow": {
+								"start": "2023-08-26T00:00:00Z",
+								"end": "2023-09-26T00:00:00Z"
+							},
+							"conditions": {
+								"show": { "type": "AlwaysTrue" },
+								"unlock": { "type": "AlwaysTrue" }
+							},
+							"actions": [{ "type": "MarkUsed", "ruleId": "lunch" }],
+							"metadata": {}
 					 }
 				}
 			"""
@@ -184,9 +188,7 @@ Feature: Scenario
 						},
             "used": null,
 						"disabled": null,
-						"attr": {
-							"diet": "葷"
-						}
+						"attr": {}
 					}
 				},
 				"attr": {
