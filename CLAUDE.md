@@ -673,6 +673,6 @@ attendee.setMetadata(`_rule_${ruleId}`, timestamp.toString());
 - The `@wip` tag on scenario features indicates work in progress
 - Legacy format migration tool needed for test compatibility
 - Mock datetime crucial for predictable test results
-- Step definition for ruleset creation is missing and needs implementation
+- Step definition uses simplified format: `"the ruleset is:"` without event/role parameters
 
 For detailed design documentation, see `docs/ruleset.md`.

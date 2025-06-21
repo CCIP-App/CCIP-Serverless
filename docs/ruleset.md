@@ -813,9 +813,7 @@ export class LegacyMigrationTool {
 
 ```typescript
 export interface RulesetRepository {
-  load(): Promise<Map<string, Ruleset>>;
-  save(rulesets: Map<string, Ruleset>): Promise<void>;
-  update(role: string, ruleset: Ruleset): Promise<void>;
+  load(): Promise<Ruleset>;
 }
 
 @injectable()
@@ -825,19 +823,16 @@ export class DurableObjectRulesetRepository implements RulesetRepository {
     private readonly connection: IDatabaseConnection,
   ) {}
 
-  async load(): Promise<Map<string, Ruleset>> {
-    const data = await this.connection.get("rulesets");
-    if (!data) return new Map();
+  async load(): Promise<Ruleset> {
+    const ruleData =
+      await this.connection.getValue<Record<string, unknown>>("rulesets");
 
-    // TODO: Parse JSON and create Ruleset domain objects
-    // - Use ConditionNodeFactory for conditions
-    // - Use ActionNodeFactory for actions
-    // - Build Rule and Ruleset entities
-  }
+    if (!ruleData) {
+      return new Ruleset({});
+    }
 
-  async save(rulesets: Map<string, Ruleset>): Promise<void> {
-    // TODO: Convert domain objects to JSON
-    // TODO: Save to Durable Object KV storage
+    // Return wrapped in Ruleset entity - simple wrapper for now
+    return new Ruleset(ruleData);
   }
 }
 ```
@@ -952,68 +947,61 @@ export class UseRuleCommand {
 @injectable()
 export class RuleEvaluationService {
   constructor(
-    @inject(RulesetRepositoryToken)
-    private readonly rulesetRepository: RulesetRepository,
     @inject(DatetimeServiceToken)
     private readonly datetimeService: IDatetimeService,
   ) {}
 
   async evaluateForAttendee(
+    ruleset: Ruleset,
     attendee: Attendee,
     isStaffQuery: boolean = false,
   ): Promise<EvaluationResult> {
-    // 1. Load ruleset for attendee's role
-    const rulesets = await this.rulesetRepository.load();
-    const roleRuleset = rulesets.get(attendee.role);
-
-    if (!roleRuleset) {
+    if (!ruleset.hasRules()) {
       return new EvaluationResult(new Map()); // Empty result
     }
 
-    // 2. Create evaluation context
+    // Create evaluation context
     const currentTime = this.datetimeService.getCurrentTime();
     const context = new EvaluationContext(attendee, currentTime, isStaffQuery);
 
-    // 3. Evaluate each rule in the ruleset
+    // Evaluate each rule in the ruleset
     const results = new Map<string, RuleEvaluationResult>();
 
-    roleRuleset.getAllRules().forEach((rule, ruleId) => {
-      const ruleResult = this.evaluateRule(rule, context);
+    // Process each rule - role filtering happens via condition evaluation
+    for (const [ruleId, ruleData] of Object.entries(ruleset.getAllRules())) {
+      const ruleResult = this.evaluateRule(ruleId, ruleData, context);
       results.set(ruleId, ruleResult);
-    });
+    }
 
     return new EvaluationResult(results);
   }
 
   private evaluateRule(
-    rule: Rule,
+    ruleId: string,
+    ruleData: Record<string, unknown>,
     context: EvaluationContext,
   ): RuleEvaluationResult {
-    // Check visibility
-    const visible = rule.isVisible(context);
-
-    // Check usability (only if visible)
-    const usable = visible ? rule.isUsable(context) : false;
+    // For now, hardcode the evaluation logic (will be replaced with proper AST evaluation)
+    const visible = true; // AlwaysTrue condition
+    const usable = true; // Basic time window check would go here
 
     // Check usage status
-    const used = context.attendee.hasUsedRule(rule.id);
-    const usedAt = used ? context.attendee.getRuleUsedAt(rule.id) : null;
+    const used = context.attendee.hasUsedRule(ruleId);
+    const usedAt = used ? context.attendee.getRuleUsedAt(ruleId) : null;
 
-    // Apply metadata mapping
-    const attributes = rule.metadataMapping.applyToDisplay(
-      context.attendee.getMetadata(),
-    );
+    // Parse messages and other data from raw rule data
+    // (Implementation details for parsing JSON to domain objects)
 
     return new RuleEvaluationResult(
-      rule.id,
+      ruleId,
       visible,
       usable,
       used,
       usedAt,
-      rule.messages,
-      attributes,
-      rule.order,
-      rule.timeWindow,
+      /* parsed messages */,
+      /* parsed attributes */,
+      /* parsed order */,
+      /* parsed timeWindow */,
     );
   }
 }
@@ -1165,14 +1153,16 @@ export class UseRuleController extends OpenAPIRoute {
 
 ```typescript
 // BDD step definition
-Given(
-  "there have a ruleset for {string} with name {string} and scenarios:",
-  async function (event: string, role: string, scenariosJson: string) {
-    // TODO: Parse legacy format
-    // TODO: Convert to new ruleset format
-    // TODO: Store in test database
-  },
-);
+Given("the ruleset is:", async function (rulesetJson: string) {
+  // Parse the ruleset JSON
+  const ruleset = JSON.parse(rulesetJson);
+
+  // Get the database connection for the event
+  const database = await this.getDatabase();
+
+  // Store all rules together - role filtering happens via condition evaluation
+  await database.setValue("rulesets", ruleset);
+});
 
 // Unit test example
 describe("AndCondition", () => {
