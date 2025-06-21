@@ -543,86 +543,69 @@ durableObject.set("rulesets", {
 
 ### Ruleset Schema
 
-The top-level structure organizes rulesets by attendee role:
+The ruleset uses a flat structure with rule IDs as keys, storing the full AST:
 
 ```json
 {
-  "audience": {
+  "day1checkin": {
     "version": "1.0",
-    "rules": [
-      {
-        "id": "checkin",
-        "order": 0,
-        "messages": {
-          "display": {
-            "en-US": "Check-in",
-            "zh-TW": "報到"
-          },
-          "locked": {
-            "en-US": "Check-in is not available",
-            "zh-TW": "報到尚未開放"
-          },
-          "staff_locked": {
-            "en-US": "Staff query mode - cannot use",
-            "zh-TW": "工作人員查詢模式 - 無法使用"
-          },
-          "expired": {
-            "en-US": "Check-in period has ended",
-            "zh-TW": "報到時間已結束"
-          },
-          "already_used": {
-            "en-US": "Already checked in",
-            "zh-TW": "已完成報到"
-          }
-        },
-        "timeWindow": {
-          "start": "2023-08-26T00:00:00Z",
-          "end": "2023-09-26T00:00:00Z"
-        },
-        "conditions": {
-          "show": { "type": "AlwaysTrue" },
-          "unlock": { "type": "AlwaysTrue" }
-        },
-        "actions": [{ "type": "MarkUsed", "ruleId": "checkin" }],
-        "metadata": {}
+    "order": 0,
+    "messages": {
+      "display": {
+        "en-US": "Day 1 Check-in",
+        "zh-TW": "第一天報到"
       },
-      {
-        "id": "welcome_kit",
-        "order": 1,
-        "messages": {
-          "display": {
-            "en-US": "Welcome Kit",
-            "zh-TW": "迎賓袋"
-          },
-          "locked": {
-            "en-US": "Please check-in first",
-            "zh-TW": "請先完成報到"
-          }
-        },
-        "timeWindow": {
-          "start": "2023-08-26T00:00:00Z",
-          "end": "2023-09-26T00:00:00Z"
-        },
-        "conditions": {
-          "show": { "type": "AlwaysTrue" },
-          "unlock": { "type": "UsedRule", "ruleId": "checkin" }
-        },
-        "actions": [{ "type": "MarkUsed", "ruleId": "welcome_kit" }],
-        "metadata": {}
+      "locked": {
+        "en-US": "Check-in not available",
+        "zh-TW": "報到尚未開放"
+      },
+      "expired": {
+        "en-US": "Check-in period has ended",
+        "zh-TW": "報到時間已結束"
+      },
+      "already_used": {
+        "en-US": "Already checked in",
+        "zh-TW": "已完成報到"
       }
-    ]
+    },
+    "timeWindow": {
+      "start": "2023-08-26T00:00:00Z",
+      "end": "2023-09-26T00:00:00Z"
+    },
+    "conditions": {
+      "show": { "type": "AlwaysTrue" },
+      "unlock": { "type": "AlwaysTrue" }
+    },
+    "actions": [
+      { "type": "MarkUsed", "ruleId": "day1checkin" }
+    ],
+    "metadata": {}
   },
-  "speaker": {
+  "welcome_kit": {
     "version": "1.0",
-    "rules": [
-      /* speaker-specific rules */
-    ]
-  },
-  "staff": {
-    "version": "1.0",
-    "rules": [
-      /* staff-specific rules */
-    ]
+    "order": 1,
+    "messages": {
+      "display": {
+        "en-US": "Welcome Kit",
+        "zh-TW": "迎賓袋"
+      },
+      "locked": {
+        "en-US": "Please check-in first",
+        "zh-TW": "請先完成報到"
+      }
+    },
+    "timeWindow": {
+      "start": "2023-08-26T00:00:00Z",
+      "end": "2023-09-26T00:00:00Z"
+    },
+    "conditions": {
+      "show": { "type": "AlwaysTrue" },
+      "unlock": { "type": "UsedRule", "ruleId": "day1checkin" }
+    },
+    "actions": [
+      { "type": "MarkUsed", "ruleId": "welcome_kit" }
+    ],
+    "metadata": {}
   }
 }
 ```
@@ -631,15 +614,15 @@ The top-level structure organizes rulesets by attendee role:
 
 Each rule contains:
 
-| Field        | Type   | Description                                  |
-| ------------ | ------ | -------------------------------------------- |
-| `id`         | string | Unique identifier for the rule               |
-| `order`      | number | Display order (lower numbers appear first)   |
-| `messages`   | object | Map of message IDs to internationalized text |
-| `timeWindow` | object | Availability period with start/end dates     |
-| `conditions` | object | Show and unlock conditions                   |
-| `actions`    | array  | Actions to execute when rule is used         |
-| `metadata`   | object | Metadata mapping configuration               |
+| Field        | Type   | Required | Description                                  |
+| ------------ | ------ | -------- | -------------------------------------------- |
+| `version`    | string | Yes      | Schema version for future migrations         |
+| `order`      | number | Yes      | Display order (lower numbers appear first)   |
+| `messages`   | object | Yes      | Map of message IDs to internationalized text |
+| `timeWindow` | object | Yes      | Availability period with start/end dates     |
+| `conditions` | object | Yes      | Show and unlock conditions                   |
+| `actions`    | array  | Yes      | Actions to execute when rule is used         |
+| `metadata`   | object | Yes      | Metadata mapping configuration               |
 
 ### Condition AST Schema
 
@@ -673,7 +656,7 @@ Conditions use a polymorphic structure with a `type` field:
 // Check staff query mode
 {
   "type": "Staff",
-  "shouldBeStaff": false  // true = only in staff mode, false = only in normal mode
+  "shouldBeStaff": false
 }
 ```
 
@@ -685,6 +668,18 @@ Conditions use a polymorphic structure with a `type` field:
   "type": "And",
   "children": [
     { "type": "Attribute", "key": "tier", "value": "VIP" },
+    { "type": "UsedRule", "ruleId": "checkin" }
+  ]
+}
+
+// At least one condition must be true
+{
+  "type": "Or",
+  "children": [
+    { "type": "Attribute", "key": "early_bird", "value": "true" },
+    { "type": "Attribute", "key": "tier", "value": "VIP" }
+  ]
+}
     { "type": "UsedRule", "ruleId": "checkin" }
   ]
 }
@@ -741,11 +736,11 @@ This maps:
 ### Schema Design Principles
 
 1. **Single KV Entry**: All rulesets stored under one key for atomic updates
-2. **Role-based Organization**: Separate rulesets by attendee role for clarity
-3. **Version Field**: Support future schema migrations at the role level
-4. **Flat AST Structure**: Use `type` field for polymorphic nodes instead of deep nesting
-5. **ISO Date Format**: Store times as ISO 8601 strings for JSON compatibility
-6. **Extensibility**: New condition and action types can be added without breaking existing data
+2. **Flat Rule Structure**: Rules are stored as a flat object with rule IDs as keys
+3. **Simple Time Format**: Store times as human-readable GMT strings
+4. **Condition Args Array**: Use `args` array for condition parameters for flexibility
+5. **Optional Fields**: Most fields are optional with sensible defaults
+6. **Extensibility**: New condition types can be added without breaking existing data
 
 ## Technology Details
 
