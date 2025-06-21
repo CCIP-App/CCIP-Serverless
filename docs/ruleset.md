@@ -134,7 +134,7 @@ Legacy JSON Input → Migration Tool → AST Conversion → Event DO KV Storage
 1. Admin panel provides migration tool interface
 2. Organizer inputs legacy scenario JSON format
 3. Migration tool converts to AST-based structure
-4. Store in Event's Durable Object KV: `eventDO.set("rulesets", { "audience": [AST...], "speaker": [AST...] })`
+4. Store in Event's Durable Object KV: `eventDO.set("rulesets", { "rule1": [AST...], "rule2": [AST...] })` with role filtering via RoleCondition
 5. Test cases use same migration tool for setup
 
 ```mermaid
@@ -543,7 +543,7 @@ durableObject.set("rulesets", {
 
 ### Ruleset Schema
 
-The ruleset uses a flat structure with rule IDs as keys, storing the full AST:
+The ruleset uses a flat structure with rule IDs as keys, storing the full AST. Role filtering is handled by RoleCondition evaluation in the AST:
 
 ```json
 {
@@ -579,17 +579,13 @@ The ruleset uses a flat structure with rule IDs as keys, storing the full AST:
     "actions": [{ "type": "MarkUsed", "ruleId": "day1checkin" }],
     "metadata": {}
   },
-  "welcome_kit": {
+  "speaker_lounge": {
     "version": "1.0",
     "order": 1,
     "messages": {
       "display": {
-        "en-US": "Welcome Kit",
-        "zh-TW": "迎賓袋"
-      },
-      "locked": {
-        "en-US": "Please check-in first",
-        "zh-TW": "請先完成報到"
+        "en-US": "Speaker Lounge Access",
+        "zh-TW": "講者休息室"
       }
     },
     "timeWindow": {
@@ -597,10 +593,13 @@ The ruleset uses a flat structure with rule IDs as keys, storing the full AST:
       "end": "2023-09-26T00:00:00Z"
     },
     "conditions": {
-      "show": { "type": "AlwaysTrue" },
-      "unlock": { "type": "UsedRule", "ruleId": "day1checkin" }
+      "show": { 
+        "type": "Role", 
+        "allowedRoles": ["speaker"] 
+      },
+      "unlock": { "type": "AlwaysTrue" }
     },
-    "actions": [{ "type": "MarkUsed", "ruleId": "welcome_kit" }],
+    "actions": [{ "type": "MarkUsed", "ruleId": "speaker_lounge" }],
     "metadata": {}
   }
 }

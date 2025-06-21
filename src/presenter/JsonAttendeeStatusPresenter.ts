@@ -33,7 +33,6 @@ export class JsonAttendeeStatusPresenter implements AttendeeStatusPresenter {
     this.evaluationResult = evaluationResult;
   }
 
-
   toJson(): AttendeeStatusData {
     if (!this.attendee) {
       throw new Error("No attendee set");
@@ -62,7 +61,7 @@ export class JsonAttendeeStatusPresenter implements AttendeeStatusPresenter {
     for (const ruleResult of visibleRules) {
       const displayMessage = ruleResult.getCurrentMessage("display");
       const displayText: Record<string, string> = {};
-      
+
       if (displayMessage) {
         for (const [locale, text] of displayMessage.getAllTranslations()) {
           displayText[locale] = text;
@@ -74,7 +73,10 @@ export class JsonAttendeeStatusPresenter implements AttendeeStatusPresenter {
         available_time: ruleResult.timeWindow.getStartTimestamp(),
         expire_time: ruleResult.timeWindow.getEndTimestamp(),
         display_text: displayText,
-        used: ruleResult.used && ruleResult.usedAt ? Math.floor(ruleResult.usedAt.getTime() / 1000) : null,
+        used:
+          ruleResult.used && ruleResult.usedAt
+            ? Math.floor(ruleResult.usedAt.getTime() / 1000)
+            : null,
         disabled: !ruleResult.usable ? "locked" : null,
         attr: Object.fromEntries(ruleResult.attributes),
       };

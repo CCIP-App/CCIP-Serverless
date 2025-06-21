@@ -34,7 +34,7 @@ export interface AttendeeStatusPresenter {
 export const RulesetRepositoryToken = Symbol("RulesetRepository");
 
 export interface RulesetRepository {
-  findRulesetByRole(eventName: string, role: string): Promise<any>; // TODO: Replace with proper Ruleset domain object
+  load(): Promise<any>; // TODO: Replace with proper Ruleset domain object when implemented
 }
 
 export const RuleEvaluationServiceToken = Symbol("RuleEvaluationService");

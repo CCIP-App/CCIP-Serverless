@@ -1,5 +1,5 @@
-import { 
-  AttendeeRepository, 
+import {
+  AttendeeRepository,
   AttendeeStatusPresenter,
   RuleEvaluationService,
 } from "./interface";
@@ -24,10 +24,11 @@ export class GetAttendeeStatusQuery {
     }
 
     // Generate evaluation result
-    const evaluationResult = await this.ruleEvaluationService.evaluateForAttendee(
-      attendee,
-      isStaffQuery,
-    );
+    const evaluationResult =
+      await this.ruleEvaluationService.evaluateForAttendee(
+        attendee,
+        isStaffQuery,
+      );
 
     this.presenter.setAttendee(attendee);
     this.presenter.setEvaluationResult(evaluationResult);

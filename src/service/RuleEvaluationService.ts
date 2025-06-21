@@ -1,18 +1,18 @@
-import { injectable, inject } from "tsyringe";
 import { Attendee } from "@/entity/Attendee";
 import {
   EvaluationResult,
-  RuleEvaluationResult,
   I18nText,
+  RuleEvaluationResult,
   TimeWindow,
 } from "@/entity/EvaluationResult";
 import {
+  DatetimeServiceToken,
+  IDatetimeService,
   RuleEvaluationService as IRuleEvaluationService,
   RulesetRepository,
   RulesetRepositoryToken,
-  DatetimeServiceToken,
-  IDatetimeService,
 } from "@/usecase/interface";
+import { inject, injectable } from "tsyringe";
 
 @injectable()
 export class RuleEvaluationService implements IRuleEvaluationService {
@@ -27,22 +27,25 @@ export class RuleEvaluationService implements IRuleEvaluationService {
     attendee: Attendee,
     isStaffQuery: boolean = false,
   ): Promise<EvaluationResult> {
-    // Load ruleset for attendee's role
-    const rulesetData = await this.rulesetRepository.findRulesetByRole(
-      "SITCON2023", // Hardcoded for now
-      attendee.role,
-    );
+    // 1. Load all rules
+    const allRules = await this.rulesetRepository.load();
 
-    if (!rulesetData || Object.keys(rulesetData).length === 0) {
+    if (!allRules || Object.keys(allRules).length === 0) {
       return new EvaluationResult(new Map());
     }
 
     const currentTime = this.datetimeService.getCurrentTime();
     const results = new Map<string, RuleEvaluationResult>();
 
-    // Process each rule in the ruleset
-    for (const [ruleId, ruleData] of Object.entries(rulesetData)) {
-      const ruleResult = this.evaluateRule(ruleId, ruleData as any, attendee, currentTime, isStaffQuery);
+    // Process each rule - role filtering happens via condition evaluation
+    for (const [ruleId, ruleData] of Object.entries(allRules)) {
+      const ruleResult = this.evaluateRule(
+        ruleId,
+        ruleData as any,
+        attendee,
+        currentTime,
+        isStaffQuery,
+      );
       results.set(ruleId, ruleResult);
     }
 

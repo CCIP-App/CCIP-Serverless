@@ -52,7 +52,9 @@ export class Attendee {
 
   hasUsedRule(ruleId: string): boolean {
     const ruleKey = `_rule_${ruleId}`;
-    return this._metadata[ruleKey] !== undefined && this._metadata[ruleKey] !== null;
+    return (
+      this._metadata[ruleKey] !== undefined && this._metadata[ruleKey] !== null
+    );
   }
 
   getRuleUsedAt(ruleId: string): Date | null {
