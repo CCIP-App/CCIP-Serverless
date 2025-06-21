@@ -469,7 +469,90 @@ When using Node.js built-ins (like `crypto`), ensure compatibility configuration
 // Property validation steps
 Then('the response json should have property {string} is not null', ...)
 Then('the response json should have property {string} is null', ...)
+
+// HTTP request steps
+When('I make a GET request to {string}', ...)
+When('I make a POST request to {string}:', ...)
 ```
+
+### Mock Data and Test Environment
+
+**Environment Variable Configuration:**
+
+For test-specific behavior (like datetime mocking), use environment variables:
+
+```typescript
+// wrangler.jsonc - Production defaults
+"vars": {
+  "__TEST__": false,
+  "__MOCK_DATETIME__": "2023-08-26T16:00:00.000Z"
+}
+
+// .dev.vars - Development overrides
+__TEST__=true
+__MOCK_DATETIME__=2023-08-26T16:00:00.000Z
+
+// .dev.vars.example - Template for new developers
+__TEST__=false
+__MOCK_DATETIME__=2023-08-26T16:00:00.000Z
+```
+
+**Test Environment Setup (Miniflare):**
+
+Configure test-specific environment in `features/support/World.ts`:
+
+```typescript
+// ✅ Correct - Use bindings for test environment variables
+this._miniflare = new Miniflare({
+  bindings: {
+    __TEST__: "true",
+    __MOCK_DATETIME__: "2023-08-26T16:00:00.000Z",
+  },
+  // ... other config
+});
+
+// ❌ Wrong - vars/envVars don't work for Cloudflare environment variables
+// Use bindings instead
+```
+
+**Service Layer Mocking:**
+
+Implement environment-aware services using `cloudflare:workers` env:
+
+```typescript
+// ✅ Correct - Environment-aware service
+import { env } from "cloudflare:workers";
+
+@injectable()
+export class NativeDatetimeService implements IDatetimeService {
+  getCurrentTime(): Date {
+    // Check if we're in test mode and return mock datetime
+    if (env.__TEST__ === "true" && env.__MOCK_DATETIME__) {
+      return new Date(env.__MOCK_DATETIME__);
+    }
+    return new Date();
+  }
+}
+
+// ❌ Wrong - Hardcoded or manual injection approaches
+// Don't use globalThis or manual dependency injection for env vars
+```
+
+**Type Generation for Environment Variables:**
+
+1. Add variables to `wrangler.jsonc` vars section
+2. Create `.dev.vars` with string values for proper type inference
+3. Run `pnpm cf-typegen` to regenerate types
+4. Environment variables are always typed as `string` in Cloudflare Workers
+
+**Testing Workflow with Mock Data:**
+
+1. Define environment variables in `wrangler.jsonc` with production defaults
+2. Override in `.dev.vars` for development/testing
+3. Configure test bindings in `features/support/World.ts`
+4. Implement conditional logic in services using `env` from `cloudflare:workers`
+5. Verify tests pass with predictable mock data
+6. Ensure TypeScript compilation succeeds with `pnpm tsc`
 
 ### Legacy Field Migration
 
