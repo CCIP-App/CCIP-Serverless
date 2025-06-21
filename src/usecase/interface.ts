@@ -12,6 +12,7 @@ export const AnnouncementRepositoryToken = Symbol("AnnouncementRepository");
 
 export interface AnnouncementRepository {
   findAnnouncementsByRole(role: AttendeeRole): Promise<Announcement[]>;
+  create(announcement: Announcement): Promise<void>;
 }
 
 export const AnnouncementListPresenterToken = Symbol(
@@ -26,4 +27,10 @@ export const AttendeeStatusPresenterToken = Symbol("AttendeeStatusPresenter");
 
 export interface AttendeeStatusPresenter {
   setAttendee(attendee: Attendee): void;
+}
+
+export const DatetimeServiceToken = Symbol("DatetimeService");
+
+export interface IDatetimeService {
+  getCurrentTime(): Date;
 }

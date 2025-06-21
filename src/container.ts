@@ -2,9 +2,11 @@ import { DatabaseConnectionToken } from "@/infra/DatabaseConnection";
 import { DatabaseConnector } from "@/infra/DatabaseConnector";
 import { DoAnnouncementRepository } from "@/repository/DoAnnouncementRepository";
 import { DoAttendeeRepository } from "@/repository/DoAttendeeRepository";
+import { NativeDatetimeService } from "@/service/NativeDatetimeService";
 import {
   AnnouncementRepositoryToken,
   AttendeeRepositoryToken,
+  DatetimeServiceToken,
 } from "@/usecase/interface";
 import { container } from "tsyringe";
 
@@ -22,5 +24,10 @@ export function configureContainer(env: Env) {
   });
   container.register(AnnouncementRepositoryToken, {
     useClass: DoAnnouncementRepository,
+  });
+
+  // Register service implementations
+  container.register(DatetimeServiceToken, {
+    useClass: NativeDatetimeService,
   });
 }

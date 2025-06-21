@@ -38,12 +38,22 @@ export class DoAnnouncementRepository implements AnnouncementRepository {
   }
 
   async create(announcement: Announcement): Promise<void> {
+    // Convert message keys to match the expected format
+    const messages = announcement.allMessages();
+    const formattedMessages: Record<string, string> = {};
+
+    if (messages[AnnouncementLocale.EN]) {
+      formattedMessages["en-US"] = messages[AnnouncementLocale.EN];
+    }
+    if (messages[AnnouncementLocale.ZH_TW]) {
+      formattedMessages["zh-TW"] = messages[AnnouncementLocale.ZH_TW];
+    }
+
     await this.connection.executeAll(sql`
-      INSERT INTO announcements (id, announced_at, message, uri, roles)
+      INSERT INTO announcements (announced_at, message, uri, roles)
       VALUES (
-        ${announcement.id},
         ${announcement.publishedAt ? Math.floor(announcement.publishedAt.getTime() / 1000) : Math.floor(Date.now() / 1000)},
-        ${JSON.stringify(announcement.allMessages())},
+        ${JSON.stringify(formattedMessages)},
         ${announcement.uri},
         ${JSON.stringify(announcement.roles)}
       )
