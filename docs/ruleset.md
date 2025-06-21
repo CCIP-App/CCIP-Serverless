@@ -576,9 +576,7 @@ The ruleset uses a flat structure with rule IDs as keys, storing the full AST:
       "show": { "type": "AlwaysTrue" },
       "unlock": { "type": "AlwaysTrue" }
     },
-    "actions": [
-      { "type": "MarkUsed", "ruleId": "day1checkin" }
-    ],
+    "actions": [{ "type": "MarkUsed", "ruleId": "day1checkin" }],
     "metadata": {}
   },
   "welcome_kit": {
@@ -602,9 +600,7 @@ The ruleset uses a flat structure with rule IDs as keys, storing the full AST:
       "show": { "type": "AlwaysTrue" },
       "unlock": { "type": "UsedRule", "ruleId": "day1checkin" }
     },
-    "actions": [
-      { "type": "MarkUsed", "ruleId": "welcome_kit" }
-    ],
+    "actions": [{ "type": "MarkUsed", "ruleId": "welcome_kit" }],
     "metadata": {}
   }
 }
