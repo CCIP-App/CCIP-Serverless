@@ -8,26 +8,26 @@ import {
   AttendeeRepositoryToken,
   DatetimeServiceToken,
 } from "@/usecase/interface";
+import { env } from "cloudflare:workers";
 import { container } from "tsyringe";
 
-export function configureContainer(env: Env) {
-  // Create and register database connection
-  const dbConnection = DatabaseConnector.build(
-    env.EVENT_DATABASE,
-    "ccip-serverless",
-  );
-  container.register(DatabaseConnectionToken, { useValue: dbConnection });
+// Register database connection with factory that uses env directly
+container.register(DatabaseConnectionToken, {
+  useFactory: () => {
+    return DatabaseConnector.build(env.EVENT_DATABASE, "ccip-serverless");
+  },
+});
 
-  // Register repository implementations
-  container.register(AttendeeRepositoryToken, {
-    useClass: DoAttendeeRepository,
-  });
-  container.register(AnnouncementRepositoryToken, {
-    useClass: DoAnnouncementRepository,
-  });
+// Register repository implementations using useClass
+container.register(AttendeeRepositoryToken, {
+  useClass: DoAttendeeRepository,
+});
 
-  // Register service implementations
-  container.register(DatetimeServiceToken, {
-    useClass: NativeDatetimeService,
-  });
-}
+container.register(AnnouncementRepositoryToken, {
+  useClass: DoAnnouncementRepository,
+});
+
+// Register service implementations
+container.register(DatetimeServiceToken, {
+  useClass: NativeDatetimeService,
+});

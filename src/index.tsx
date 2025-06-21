@@ -3,18 +3,12 @@ import "@abraham/reflection";
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
 
-import { configureContainer } from "@/container";
+import "@/container";
 import { register as registerApi } from "@/handler/api";
 import { renderer } from "./renderer";
 
 const app = new Hono<{ Bindings: Env }>();
 app.use(renderer);
-
-// Configure dependency injection container
-app.use("*", async (c, next) => {
-  configureContainer(c.env);
-  await next();
-});
 
 const openapi = fromHono(app, {
   schema: {

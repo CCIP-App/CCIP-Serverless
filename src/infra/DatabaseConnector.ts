@@ -1,5 +1,6 @@
 import { SQLWrapper } from "drizzle-orm";
 import { SQLiteDialect, SQLiteSyncDialect } from "drizzle-orm/sqlite-core";
+import { IDatabaseConnection } from "./DatabaseConnection";
 
 export interface DurableDatabase {
   executeAll<T>(raw: string): Promise<T[]>;
@@ -7,7 +8,7 @@ export interface DurableDatabase {
 
 export class DatabaseConnector<
   T extends Rpc.DurableObjectBranded & DurableDatabase,
-> {
+> implements IDatabaseConnection {
   private readonly dialect: SQLiteDialect = new SQLiteSyncDialect();
 
   constructor(private readonly database: DurableObjectStub<T>) {}
