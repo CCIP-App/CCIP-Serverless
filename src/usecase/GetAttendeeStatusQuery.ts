@@ -19,5 +19,6 @@ export class GetAttendeeStatusQuery {
     }
 
     this.presenter.setAttendee(attendee);
+    this.presenter.setScenarios({});
   }
 }

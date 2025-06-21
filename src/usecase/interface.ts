@@ -27,6 +27,7 @@ export const AttendeeStatusPresenterToken = Symbol("AttendeeStatusPresenter");
 
 export interface AttendeeStatusPresenter {
   setAttendee(attendee: Attendee): void;
+  setScenarios(scenarios: Record<string, any>): void;
 }
 
 export const DatetimeServiceToken = Symbol("DatetimeService");
