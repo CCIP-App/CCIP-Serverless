@@ -58,3 +58,21 @@ export class AlwaysTrueCondition extends ConditionNode {
     return true;
   }
 }
+
+/**
+ * Checks if an attendee attribute matches an expected value
+ */
+export class AttributeCondition extends ConditionNode {
+  constructor(
+    private readonly attributeKey: string,
+    private readonly expectedValue: string,
+  ) {
+    super();
+  }
+
+  evaluate(context: EvaluationContext): boolean {
+    return (
+      context.attendee.getMetadata(this.attributeKey) === this.expectedValue
+    );
+  }
+}

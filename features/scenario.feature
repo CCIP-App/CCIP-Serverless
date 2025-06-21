@@ -54,7 +54,6 @@ Feature: Scenario
         "attr": {}
       }
       """
-  @wip
   Scenario: A scenario configured but not matched attendee attribute
     Given there have some attendees
       | token                                | role     | metadata        | display_name | first_used_at             |
