@@ -5,32 +5,28 @@ import {
   RuleEvaluationResult,
   TimeWindow,
 } from "@/entity/EvaluationResult";
+import { Ruleset } from "@/entity/Ruleset";
 import {
   DatetimeServiceToken,
   IDatetimeService,
   RuleEvaluationService as IRuleEvaluationService,
-  RulesetRepository,
-  RulesetRepositoryToken,
 } from "@/usecase/interface";
 import { inject, injectable } from "tsyringe";
 
 @injectable()
 export class RuleEvaluationService implements IRuleEvaluationService {
   constructor(
-    @inject(RulesetRepositoryToken)
-    private readonly rulesetRepository: RulesetRepository,
     @inject(DatetimeServiceToken)
     private readonly datetimeService: IDatetimeService,
   ) {}
 
   async evaluateForAttendee(
+    ruleset: Ruleset,
     attendee: Attendee,
-    isStaffQuery: boolean = false,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _isStaffQuery: boolean = false,
   ): Promise<EvaluationResult> {
-    // 1. Load all rules
-    const allRules = await this.rulesetRepository.load();
-
-    if (!allRules || Object.keys(allRules).length === 0) {
+    if (!ruleset.hasRules()) {
       return new EvaluationResult(new Map());
     }
 
@@ -38,13 +34,12 @@ export class RuleEvaluationService implements IRuleEvaluationService {
     const results = new Map<string, RuleEvaluationResult>();
 
     // Process each rule - role filtering happens via condition evaluation
-    for (const [ruleId, ruleData] of Object.entries(allRules)) {
+    for (const [ruleId, ruleData] of Object.entries(ruleset.getAllRules())) {
       const ruleResult = this.evaluateRule(
         ruleId,
-        ruleData as any,
+        ruleData as Record<string, unknown>,
         attendee,
         currentTime,
-        isStaffQuery,
       );
       results.set(ruleId, ruleResult);
     }
@@ -54,38 +49,43 @@ export class RuleEvaluationService implements IRuleEvaluationService {
 
   private evaluateRule(
     ruleId: string,
-    ruleData: any,
+    ruleData: Record<string, unknown>,
     attendee: Attendee,
     currentTime: Date,
-    isStaffQuery: boolean,
   ): RuleEvaluationResult {
     // For now, hardcode the evaluation logic based on the test scenario
     // This will be replaced with proper AST evaluation later
 
-    // Create I18nText for messages
+    // Parse messages from rule data
+    const messagesData =
+      (ruleData.messages as Record<string, Record<string, string>>) || {};
     const messages = new Map<string, I18nText>();
-    if (ruleData.messages?.display) {
-      const displayTranslations = new Map<string, string>();
-      Object.entries(ruleData.messages.display).forEach(([locale, text]) => {
-        displayTranslations.set(locale, text as string);
-      });
-      messages.set("display", new I18nText(displayTranslations));
+
+    for (const [messageId, translations] of Object.entries(messagesData)) {
+      const translationMap = new Map(Object.entries(translations));
+      messages.set(messageId, new I18nText(translationMap));
     }
 
-    // Create TimeWindow
+    // Parse time window from rule data
+    const timeWindowData = (ruleData.timeWindow as {
+      start: string;
+      end: string;
+    }) || { start: "1970-01-01T00:00:00Z", end: "2099-12-31T23:59:59Z" };
     const timeWindow = new TimeWindow(
-      new Date(ruleData.timeWindow.start),
-      new Date(ruleData.timeWindow.end),
+      new Date(timeWindowData.start),
+      new Date(timeWindowData.end),
     );
 
     // Hardcoded evaluation logic for the first test case
     const visible = true; // AlwaysTrue condition
-    const usable = true && timeWindow.isAvailable(currentTime); // AlwaysTrue condition + time check
+    const usable = timeWindow.isAvailable(currentTime); // AlwaysTrue condition + time check
     const used = attendee.hasUsedRule(ruleId);
     const usedAt = used ? attendee.getRuleUsedAt(ruleId) : null;
 
     // Empty attributes for now (no metadata mapping in first test)
-    const attributes = new Map<string, any>();
+    const attributes = new Map<string, unknown>();
+
+    const order = (ruleData.order as number) || 0;
 
     return new RuleEvaluationResult(
       ruleId,
@@ -95,7 +95,7 @@ export class RuleEvaluationService implements IRuleEvaluationService {
       usedAt,
       messages,
       attributes,
-      ruleData.order || 0,
+      order,
       timeWindow,
     );
   }

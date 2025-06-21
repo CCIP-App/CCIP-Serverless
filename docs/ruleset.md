@@ -593,9 +593,9 @@ The ruleset uses a flat structure with rule IDs as keys, storing the full AST. R
       "end": "2023-09-26T00:00:00Z"
     },
     "conditions": {
-      "show": { 
-        "type": "Role", 
-        "allowedRoles": ["speaker"] 
+      "show": {
+        "type": "Role",
+        "allowedRoles": ["speaker"]
       },
       "unlock": { "type": "AlwaysTrue" }
     },

@@ -3,7 +3,12 @@ import { World } from "../support/World";
 
 Given(
   "there have a ruleset for {string} with name {string} and scenarios:",
-  async function (this: World, eventName: string, roleName: string, rulesetJson: string) {
+  async function (
+    this: World,
+    eventName: string,
+    roleName: string,
+    rulesetJson: string,
+  ) {
     // Parse the ruleset JSON - eventName and roleName are ignored as per design
     const ruleset = JSON.parse(rulesetJson);
 

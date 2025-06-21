@@ -9,7 +9,7 @@ export class RuleEvaluationResult {
     public readonly used: boolean,
     public readonly usedAt: Date | null,
     public readonly messages: Map<string, I18nText>,
-    public readonly attributes: Map<string, any>, // Mapped metadata
+    public readonly attributes: Map<string, unknown>, // Mapped metadata
     public readonly order: number,
     public readonly timeWindow: TimeWindow,
   ) {}

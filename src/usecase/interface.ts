@@ -1,6 +1,7 @@
 import { Announcement } from "@/entity/Announcement";
 import { Attendee, AttendeeRole } from "@/entity/Attendee";
 import { EvaluationResult } from "@/entity/EvaluationResult";
+import { Ruleset } from "@/entity/Ruleset";
 
 export const AttendeeRepositoryToken = Symbol("AttendeeRepository");
 
@@ -34,13 +35,14 @@ export interface AttendeeStatusPresenter {
 export const RulesetRepositoryToken = Symbol("RulesetRepository");
 
 export interface RulesetRepository {
-  load(): Promise<any>; // TODO: Replace with proper Ruleset domain object when implemented
+  load(): Promise<Ruleset>;
 }
 
 export const RuleEvaluationServiceToken = Symbol("RuleEvaluationService");
 
 export interface RuleEvaluationService {
   evaluateForAttendee(
+    ruleset: Ruleset,
     attendee: Attendee,
     isStaffQuery: boolean,
   ): Promise<EvaluationResult>;

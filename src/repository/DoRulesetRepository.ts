@@ -1,3 +1,4 @@
+import { Ruleset } from "@/entity/Ruleset";
 import {
   DatabaseConnectionToken,
   IKvDatabaseConnection,
@@ -12,15 +13,16 @@ export class DoRulesetRepository implements RulesetRepository {
     private readonly connection: IKvDatabaseConnection,
   ) {}
 
-  async load(): Promise<any> {
+  async load(): Promise<Ruleset> {
     // Load all rules from KV storage
-    const rulesets = await this.connection.getValue<any>("rulesets");
-    
-    if (!rulesets) {
-      return {};
+    const ruleData =
+      await this.connection.getValue<Record<string, unknown>>("rulesets");
+
+    if (!ruleData) {
+      return new Ruleset({});
     }
 
-    // Return all rules - role filtering happens in service layer via RoleCondition evaluation
-    return rulesets;
+    // Return wrapped in Ruleset entity - just to replace 'any' types for now
+    return new Ruleset(ruleData);
   }
 }

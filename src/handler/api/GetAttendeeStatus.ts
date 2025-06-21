@@ -5,6 +5,8 @@ import {
   AttendeeRepositoryToken,
   RuleEvaluationService,
   RuleEvaluationServiceToken,
+  RulesetRepository,
+  RulesetRepositoryToken,
 } from "@/usecase/interface";
 import { OpenAPIRouteSchema } from "chanfana";
 import { Context } from "hono";
@@ -52,12 +54,16 @@ export class GetAttendeeStatusController extends BaseController {
     const attendeeRepository = container.resolve<AttendeeRepository>(
       AttendeeRepositoryToken,
     );
+    const rulesetRepository = container.resolve<RulesetRepository>(
+      RulesetRepositoryToken,
+    );
     const ruleEvaluationService = container.resolve<RuleEvaluationService>(
       RuleEvaluationServiceToken,
     );
 
     const getAttendeeStatusQuery = new GetAttendeeStatusQuery(
       attendeeRepository,
+      rulesetRepository,
       ruleEvaluationService,
       presenter,
     );
