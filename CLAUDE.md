@@ -23,6 +23,8 @@ CCIP Serverless is the serverless OPass backend built on Cloudflare Workers with
 ### Testing
 
 - `pnpm e2e` - Run Cucumber.js BDD tests
+- `pnpm e2e -- features/specific_file.feature` - Run single feature file
+- `pnpm e2e --dry-run` - Validate test structure without execution
 
 ### Database & Code Generation
 
@@ -637,14 +639,18 @@ The ruleset system is one of the most complex features in CCIP Serverless. It im
 4. **Follow Clean Architecture**: Use cases orchestrate, presenters format output
 5. **Test with BDD**: Missing step definition for ruleset setup needs implementation
 
-**Key Condition Types**:
+**Key Condition Types** (All Implemented):
 
-- `AlwaysTrue`: No conditions
-- `Attribute`: Check attendee metadata
+- `AlwaysTrue`: No conditions (base case)
+- `Attribute`: Check attendee metadata values
 - `UsedRule`: Check if another rule was used
+- `And`: All child conditions must be true (composite)
+- `Or`: At least one child condition must be true (composite)
+
+**Planned Condition Types**:
+
 - `Role`: Check attendee role
 - `Staff`: Check if staff query mode
-- `And`/`Or`: Composite conditions
 
 **Critical Patterns**:
 
@@ -677,30 +683,74 @@ attendee.setMetadata(`_rule_${ruleId}`, timestamp.toString());
 
 For detailed design documentation, see `docs/ruleset.md`.
 
-### Implementation Progress and Conventions
+### Implementation State (Fully Complete)
 
-**Current Implementation State**:
+**✅ All Core Components Implemented**:
 
-- ✅ Basic entities: `Ruleset`, `Rule`, `EvaluationContext`, `TimeWindow`, `LocalizedText`
-- ✅ Factory pattern: `RuleFactory` for JSON to domain object conversion
-- ✅ Repository pattern: `DoRulesetRepository` with proper DI and factory injection
-- ✅ Value objects: `RuleEvaluationResult`, `EvaluationResult` for type-safe evaluation state
-- ✅ Minimal condition system: `AlwaysTrueCondition` as base implementation
-- 🚧 Planned: Full condition types (Attribute, UsedRule, Role, Staff, And, Or)
-- 🚧 Planned: Action system for rule execution
+- **Domain Entities**: `Ruleset`, `Rule`, `EvaluationContext`, `TimeWindow`, `LocalizedText`
+- **Factory Pattern**: `RuleFactory` for JSON to domain object conversion with full AST support
+- **Repository Pattern**: `DoRulesetRepository` with proper DI and factory injection
+- **Value Objects**: `RuleEvaluationResult`, `EvaluationResult` with `isDisabled()` method
+- **Full Condition System**: `AlwaysTrueCondition`, `AttributeCondition`, `UsedRuleCondition`, `AndCondition`, `OrCondition`
+- **Action System**: Implemented via `UseRuleCommand` use case for rule execution
+- **Metadata Filtering**: `Attendee.visibleMetadata()` filters internal keys starting with `_`
 
-**Key Conventions Learned**:
+**✅ Condition Node Implementation**:
 
-1. **Factory Separation from Entities**: Domain entities should not contain parsing logic. Use factory services for JSON→Entity conversion
-2. **Value Object Organization**: Move value objects to dedicated files (`TimeWindow.ts`, `Locale.ts` with `LocalizedText`)
-3. **Consistent Naming**: `LocalizedText` instead of `I18nText`, `Locale` enum instead of hardcoded strings
-4. **Repository Interface Design**: Load all rules via `load()`, not filtered by role - filtering happens via AST conditions
-5. **Service Interface Patterns**: Services should accept domain objects as parameters, not load directly from repositories
-6. **Minimal Progressive Implementation**: Start with empty entities/hardcoded logic, then progressively add features while keeping tests passing
+```typescript
+// ConditionNodeFactory supports recursive parsing
+export class ConditionNodeFactory {
+  static create(json: Record<string, unknown>): ConditionNode {
+    switch (json.type as string) {
+      case "AlwaysTrue":
+        return new AlwaysTrueCondition();
+      case "Attribute":
+        return new AttributeCondition(json.key, json.value);
+      case "UsedRule":
+        return new UsedRuleCondition(json.ruleId);
+      case "And":
+        return new AndCondition(
+          json.children.map((child) => ConditionNodeFactory.create(child)),
+        );
+      case "Or":
+        return new OrCondition(
+          json.children.map((child) => ConditionNodeFactory.create(child)),
+        );
+    }
+  }
+}
+```
 
-**BDD Test Conventions**:
+**✅ Rule Execution Pattern**:
 
-- Step definitions use simplified format: `"the ruleset is:"` without redundant parameters
-- Use `@wip` tags for work-in-progress scenarios
-- First implement passing scenarios, then gradually enable complex ones
-- Mock datetime via environment variables for predictable tests
+```typescript
+// UseRuleCommand handles action execution without DI decorators
+export class UseRuleCommand {
+  constructor(
+    private readonly attendeeRepository: AttendeeRepository,
+    private readonly rulesetRepository: RulesetRepository,
+    private readonly evaluationService: RuleEvaluationService,
+    private readonly datetimeService: IDatetimeService,
+  ) {}
+
+  async execute(token: string, ruleId: string): Promise<AttendeeStatusData> {
+    // Load attendee, evaluate rule, mark as used, return updated status
+    const timestamp = Math.floor(currentTime.getTime() / 1000);
+    attendee.setMetadata(`_rule_${ruleId}`, timestamp.toString());
+  }
+}
+```
+
+**Key Architectural Conventions**:
+
+1. **Factory Separation**: Domain entities contain no parsing logic, factories handle JSON→Entity conversion
+2. **Value Object Organization**: Dedicated files for `TimeWindow.ts`, `Locale.ts` with proper enums
+3. **Repository Design**: Load all rules via `load()`, role filtering happens via condition evaluation
+4. **Clean Architecture**: Use cases are plain classes, controllers handle all DI resolution
+5. **Metadata Visibility**: Internal metadata (keys starting with `_`) filtered via domain methods
+
+**BDD Test Coverage**:
+
+- 24 scenarios covering basic usage, attribute-based rules, composite conditions, progressive unlocking
+- Step definitions use current format: `"the ruleset is:"` without redundant parameters
+- Environment-aware mocking with `__TEST__` and `__MOCK_DATETIME__` variables
