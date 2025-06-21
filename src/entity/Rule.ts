@@ -76,3 +76,16 @@ export class AttributeCondition extends ConditionNode {
     );
   }
 }
+
+/**
+ * Checks if another rule has been used by the attendee
+ */
+export class UsedRuleCondition extends ConditionNode {
+  constructor(private readonly ruleId: string) {
+    super();
+  }
+
+  evaluate(context: EvaluationContext): boolean {
+    return context.attendee.hasUsedRule(this.ruleId);
+  }
+}
