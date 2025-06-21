@@ -89,16 +89,6 @@ export class JsonAttendeeStatusPresenter implements AttendeeStatusPresenter {
   private getAttendeeAttributes(): Record<string, unknown> {
     if (!this.attendee) return {};
 
-    // Filter out rule usage metadata (keys starting with "_rule_")
-    const filteredAttributes: Record<string, unknown> = {};
-    const metadata = this.attendee.metadata || {};
-
-    for (const [key, value] of Object.entries(metadata)) {
-      if (!key.startsWith("_rule_")) {
-        filteredAttributes[key] = value;
-      }
-    }
-
-    return filteredAttributes;
+    return this.attendee.visibleMetadata();
   }
 }

@@ -46,6 +46,20 @@ export class Attendee {
     return { ...this._metadata };
   }
 
+  /**
+   * Get metadata that should be visible to external systems
+   * Filters out internal metadata (keys starting with "_")
+   */
+  visibleMetadata(): Record<string, MetadataValue> {
+    const visible: Record<string, MetadataValue> = {};
+    for (const [key, value] of Object.entries(this._metadata)) {
+      if (!key.startsWith("_")) {
+        visible[key] = value;
+      }
+    }
+    return visible;
+  }
+
   setAllMetadata(metadata: Record<string, MetadataValue>): void {
     this._metadata = metadata || {};
   }

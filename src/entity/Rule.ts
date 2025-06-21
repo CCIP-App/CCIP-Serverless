@@ -89,3 +89,29 @@ export class UsedRuleCondition extends ConditionNode {
     return context.attendee.hasUsedRule(this.ruleId);
   }
 }
+
+/**
+ * Composite condition that requires all children to be true (AND logic)
+ */
+export class AndCondition extends ConditionNode {
+  constructor(private readonly children: ConditionNode[]) {
+    super();
+  }
+
+  evaluate(context: EvaluationContext): boolean {
+    return this.children.every((child) => child.evaluate(context));
+  }
+}
+
+/**
+ * Composite condition that requires at least one child to be true (OR logic)
+ */
+export class OrCondition extends ConditionNode {
+  constructor(private readonly children: ConditionNode[]) {
+    super();
+  }
+
+  evaluate(context: EvaluationContext): boolean {
+    return this.children.some((child) => child.evaluate(context));
+  }
+}
