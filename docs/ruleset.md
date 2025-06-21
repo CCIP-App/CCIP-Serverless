@@ -231,7 +231,7 @@ sequenceDiagram
 
 ## Domain Model
 
-The domain model uses Clean Architecture principles with an aggregate root pattern. It leverages Strategy and Composite patterns for flexible rule evaluation.
+The domain model uses Clean Architecture principles with an aggregate root pattern. It leverages Strategy and Composite patterns for flexible rule evaluation. **All core components are now fully implemented and tested.**
 
 ### Aggregate Root - Ruleset
 
@@ -308,7 +308,7 @@ export abstract class ConditionNode {
 }
 ```
 
-#### Currently Implemented Conditions
+#### Implemented Condition Types
 
 **AlwaysTrueCondition**: A condition that always evaluates to true (for rules without conditions).
 
@@ -320,10 +320,6 @@ export class AlwaysTrueCondition extends ConditionNode {
 }
 ```
 
-#### Planned Condition Types
-
-The following condition types are planned for future implementation:
-
 **AttributeCondition**: Checks if an attendee attribute matches an expected value.
 
 ```typescript
@@ -331,7 +327,9 @@ export class AttributeCondition extends ConditionNode {
   constructor(
     private readonly attributeKey: string,
     private readonly expectedValue: string,
-  ) {}
+  ) {
+    super();
+  }
 
   evaluate(context: EvaluationContext): boolean {
     return (
@@ -345,13 +343,45 @@ export class AttributeCondition extends ConditionNode {
 
 ```typescript
 export class UsedRuleCondition extends ConditionNode {
-  constructor(private readonly ruleId: string) {}
+  constructor(private readonly ruleId: string) {
+    super();
+  }
 
   evaluate(context: EvaluationContext): boolean {
     return context.attendee.hasUsedRule(this.ruleId);
   }
 }
 ```
+
+**AndCondition**: All child conditions must be true (Composite Pattern).
+
+```typescript
+export class AndCondition extends ConditionNode {
+  constructor(private readonly children: ConditionNode[]) {
+    super();
+  }
+
+  evaluate(context: EvaluationContext): boolean {
+    return this.children.every((child) => child.evaluate(context));
+  }
+}
+```
+
+**OrCondition**: At least one child condition must be true (Composite Pattern).
+
+```typescript
+export class OrCondition extends ConditionNode {
+  constructor(private readonly children: ConditionNode[]) {
+    super();
+  }
+
+  evaluate(context: EvaluationContext): boolean {
+    return this.children.some((child) => child.evaluate(context));
+  }
+}
+```
+
+#### Planned Condition Types
 
 **RoleCondition**: Checks if attendee has one of the allowed roles.
 
@@ -377,65 +407,26 @@ export class StaffCondition extends ConditionNode {
 }
 ```
 
-#### Composite Conditions
+### Action Implementation
 
-**AndCondition**: All child conditions must be true.
+The action system is currently implemented through the `UseRuleCommand` use case rather than separate ActionNode classes. This provides a simpler implementation that handles rule execution and state updates.
 
-```typescript
-export class AndCondition extends ConditionNode {
-  constructor(private readonly children: ConditionNode[]) {}
+#### Current Action Implementation
 
-  evaluate(context: EvaluationContext): boolean {
-    return this.children.every((child) => child.evaluate(context));
-  }
-}
-```
-
-**OrCondition**: At least one child condition must be true.
+**MarkUsed Action**: Implemented in `UseRuleCommand` to mark rules as used by storing timestamps in attendee metadata.
 
 ```typescript
-export class OrCondition extends ConditionNode {
-  constructor(private readonly children: ConditionNode[]) {}
-
-  evaluate(context: EvaluationContext): boolean {
-    return this.children.some((child) => child.evaluate(context));
-  }
-}
-```
-
-### Action Nodes (Strategy Pattern)
-
-Actions are executed when a rule is applied successfully.
-
-#### Base Action
-
-```typescript
-export abstract class ActionNode {
-  abstract execute(context: ExecutionContext): void;
-}
-```
-
-#### Concrete Actions
-
-**MarkUsedAction**: Marks a rule as used by storing a timestamp in attendee metadata.
-
-```typescript
-export class MarkUsedAction extends ActionNode {
-  constructor(private readonly ruleId: string) {}
-
-  execute(context: ExecutionContext): void {
-    const timestamp = Math.floor(context.currentTime.getTime() / 1000);
-    context.attendee.setMetadata(`_rule_${this.ruleId}`, timestamp.toString());
-  }
-}
+// In UseRuleCommand.execute()
+const timestamp = Math.floor(currentTime.getTime() / 1000);
+attendee.setMetadata(`_rule_${ruleId}`, timestamp.toString());
+await this.attendeeRepository.save(attendee);
 ```
 
 #### Planned Action Types
 
-Additional action types planned for future implementation:
+Future action types can be implemented as separate ActionNode classes:
 
 - **SetMetadataAction**: Sets specific metadata values on the attendee
-- **IncrementCounterAction**: Increments usage counters for resource tracking
 
 ### Supporting Value Objects
 
@@ -754,32 +745,41 @@ The parser converts JSON schema to domain objects using a factory pattern:
 
 ```typescript
 export class ConditionNodeFactory {
-  static create(json: any): ConditionNode {
-    switch (json.type) {
+  static create(json: Record<string, unknown>): ConditionNode {
+    const type = json.type as string;
+
+    switch (type) {
       case "AlwaysTrue":
         return new AlwaysTrueCondition();
       case "Attribute":
-        return new AttributeCondition(json.key, json.value);
+        return new AttributeCondition(json.key as string, json.value as string);
       case "UsedRule":
-        return new UsedRuleCondition(json.ruleId);
-      case "Role":
-        return new RoleCondition(json.allowedRoles);
-      case "Staff":
-        return new StaffCondition(json.shouldBeStaff);
-      case "And":
-        return new AndCondition(
-          json.children.map((child) => ConditionNodeFactory.create(child)),
+        return new UsedRuleCondition(json.ruleId as string);
+      case "And": {
+        const children = (json.children as Array<Record<string, unknown>>).map(
+          (childJson) => ConditionNodeFactory.create(childJson),
         );
-      case "Or":
-        return new OrCondition(
-          json.children.map((child) => ConditionNodeFactory.create(child)),
+        return new AndCondition(children);
+      }
+      case "Or": {
+        const children = (json.children as Array<Record<string, unknown>>).map(
+          (childJson) => ConditionNodeFactory.create(childJson),
         );
+        return new OrCondition(children);
+      }
+      // Planned implementations:
+      // case "Role":
+      //   return new RoleCondition(json.allowedRoles);
+      // case "Staff":
+      //   return new StaffCondition(json.shouldBeStaff);
       default:
-        throw new Error(`Unknown condition type: ${json.type}`);
+        throw new Error(`Unknown condition type: ${type}`);
     }
   }
 }
 
+// Action system currently implemented in UseRuleCommand use case
+// Future ActionNode factory for more complex action types:
 export class ActionNodeFactory {
   static create(json: any): ActionNode {
     switch (json.type) {
