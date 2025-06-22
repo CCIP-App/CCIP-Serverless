@@ -1,10 +1,18 @@
-import { Attendee } from "@/entity/Attendee";
-import { AttendeeRepository } from "./interface";
+import { AttendeeRepository, ProfilePresenter } from "./interface";
 
 export class GetProfile {
-  constructor(private readonly attendeeRepository: AttendeeRepository) {}
+  constructor(
+    private readonly attendeeRepository: AttendeeRepository,
+    private readonly presenter: ProfilePresenter,
+  ) {}
 
-  async execute(token: string): Promise<Attendee | null> {
-    return await this.attendeeRepository.findAttendeeByToken(token);
+  async execute(token: string): Promise<void> {
+    const attendee = await this.attendeeRepository.findAttendeeByToken(token);
+
+    if (!attendee) {
+      throw new Error("invalid token");
+    }
+
+    this.presenter.setAttendee(attendee);
   }
 }

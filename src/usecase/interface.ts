@@ -55,3 +55,9 @@ export interface IDatetimeService {
 }
 
 export const RuleFactoryToken = Symbol("RuleFactory");
+
+export const ProfilePresenterToken = Symbol("ProfilePresenter");
+
+export interface ProfilePresenter {
+  setAttendee(attendee: Attendee): void;
+}

@@ -1,3 +1,4 @@
+import { JsonProfilePresenter } from "@/presenter/JsonProfilePresenter";
 import { GetProfile } from "@/usecase/GetProfile";
 import {
   AttendeeRepository,
@@ -48,18 +49,17 @@ export class LandingController extends BaseController {
     const data = await this.getValidatedData<typeof this.schema>();
     const query = data.query as unknown as { token: string };
 
-    const attendeeRepository = container.resolve<AttendeeRepository>(
-      AttendeeRepositoryToken,
-    );
-    const getProfile = new GetProfile(attendeeRepository);
-    const attendee = await getProfile.execute(query.token);
+    try {
+      const presenter = new JsonProfilePresenter();
+      const attendeeRepository = container.resolve<AttendeeRepository>(
+        AttendeeRepositoryToken,
+      );
+      const getProfile = new GetProfile(attendeeRepository, presenter);
+      await getProfile.execute(query.token);
 
-    if (!attendee) {
-      return c.json({ message: "invalid token" }, 400);
+      return c.json(presenter.toJson());
+    } catch (error) {
+      return c.json({ message: (error as Error).message }, 400);
     }
-
-    return c.json({
-      nickname: attendee.displayName,
-    });
   }
 }
