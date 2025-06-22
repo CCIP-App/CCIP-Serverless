@@ -1,3 +1,4 @@
+import { JsonAttendeeStatusPresenter } from "@/presenter/JsonAttendeeStatusPresenter";
 import { UseRuleCommand } from "@/usecase/UseRuleCommand";
 import {
   AttendeeRepository,
@@ -68,6 +69,9 @@ export class UseRuleController extends OpenAPIRoute {
     }
 
     try {
+      // Create presenter
+      const presenter = new JsonAttendeeStatusPresenter();
+
       // Resolve dependencies
       const attendeeRepository = container.resolve<AttendeeRepository>(
         AttendeeRepositoryToken,
@@ -87,10 +91,11 @@ export class UseRuleController extends OpenAPIRoute {
         rulesetRepository,
         evaluationService,
         datetimeService,
+        presenter,
       );
 
-      const result = await useCase.execute(token, ruleId);
-      return c.json(result);
+      await useCase.execute(token, ruleId);
+      return c.json(presenter.toJson());
     } catch (error) {
       return c.json({ message: (error as Error).message }, 400);
     }

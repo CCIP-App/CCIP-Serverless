@@ -1,7 +1,7 @@
 import { EvaluationContext } from "@/entity/EvaluationContext";
-import { JsonAttendeeStatusPresenter } from "@/presenter/JsonAttendeeStatusPresenter";
 import {
   AttendeeRepository,
+  AttendeeStatusPresenter,
   IDatetimeService,
   RuleEvaluationService,
   RulesetRepository,
@@ -16,19 +16,10 @@ export class UseRuleCommand {
     private readonly rulesetRepository: RulesetRepository,
     private readonly evaluationService: RuleEvaluationService,
     private readonly datetimeService: IDatetimeService,
+    private readonly presenter: AttendeeStatusPresenter,
   ) {}
 
-  async execute(
-    token: string,
-    ruleId: string,
-  ): Promise<{
-    public_token: string;
-    user_id: string;
-    first_use: number | null;
-    role: string;
-    scenario: Record<string, unknown>;
-    attr: Record<string, unknown>;
-  }> {
+  async execute(token: string, ruleId: string): Promise<void> {
     // Load attendee
     const attendee = await this.attendeeRepository.findAttendeeByToken(token);
     if (!attendee) {
@@ -78,10 +69,7 @@ export class UseRuleCommand {
       false,
     );
 
-    const presenter = new JsonAttendeeStatusPresenter();
-    presenter.setAttendee(attendee);
-    presenter.setEvaluationResult(evaluationResult);
-
-    return presenter.toJson();
+    this.presenter.setAttendee(attendee);
+    this.presenter.setEvaluationResult(evaluationResult);
   }
 }
