@@ -100,8 +100,9 @@ Current schema includes:
 **IMPORTANT**: After making code changes, you MUST run these commands in order:
 
 1. `pnpm format` - Format code with Prettier
-2. `pnpm tsc` - Check TypeScript types
-3. `pnpm e2e` - Run BDD tests to verify functionality
+2. `pnpm lint` - Run ESLint to check code quality
+3. `pnpm tsc` - Check TypeScript types
+4. `pnpm e2e` - Run BDD tests to verify functionality
 
 This ensures code consistency and prevents breaking existing functionality.
 
@@ -218,11 +219,16 @@ export class Announcement {
 - **Application logic**: Orchestrate entities and repositories
 - **Framework-free**: No DI decorators, pure constructor injection
 - **Presenter pattern**: Use presenters for output formatting instead of returning data directly
+- **No presenter imports**: NEVER import presenter implementations directly in use cases - always accept via constructor
+- **Pure dependency injection**: Use cases should only import from `./interface` and entity files
 
 ```typescript
-// ✅ Correct - Use case with presenter pattern
+// ✅ Correct - Use case with presenter pattern via constructor injection
 export class AllAnnouncementQuery {
-  constructor(private readonly presenter: AnnouncementListPresenter) {}
+  constructor(
+    private readonly presenter: AnnouncementListPresenter, // Interface from ./interface
+    private readonly repository: AnnouncementRepository,
+  ) {}
 
   async execute(token?: string): Promise<void> {
     // Business logic here
@@ -230,10 +236,13 @@ export class AllAnnouncementQuery {
   }
 }
 
-// ❌ Wrong - Use case returning data directly
+// ❌ Wrong - Use case importing presenter implementation
+import { JsonAnnouncementListPresenter } from "@/presenter/JsonAnnouncementListPresenter";
+
 export class AllAnnouncementQuery {
   async execute(token?: string): Promise<AnnouncementData[]> {
-    return []; // Don't return API-specific data
+    const presenter = new JsonAnnouncementListPresenter(); // Never create presenters in use cases
+    return presenter.toJson(); // Don't return API-specific data
   }
 }
 ```
