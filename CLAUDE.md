@@ -49,6 +49,10 @@ CCIP Serverless is the serverless OPass backend built on Cloudflare Workers with
 - `src/index.tsx` - Main application entry with Hono app setup
 - `src/renderer.tsx` - JSX renderer configuration
 
+**Constants**:
+
+- `src/constant.ts` - Application-wide constants (e.g., DEFAULT_DATABASE_NAME)
+
 **Database Layer**:
 
 - `src/infra/DatabaseConnector.ts` - Database connection abstraction pattern
