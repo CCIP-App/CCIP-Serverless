@@ -1,3 +1,4 @@
+import { DEFAULT_DATABASE_NAME } from "@/constant";
 import { EventDatabase } from "@/index";
 import { DatabaseConnector } from "@/infra/DatabaseConnector";
 import {
@@ -69,7 +70,7 @@ export default class CcipServerlessWorld extends World {
   }
 
   async getDatabase(name?: string): Promise<DatabaseConnector<EventDatabase>> {
-    const defaultName = name ?? "ccip-serverless";
+    const defaultName = name ?? DEFAULT_DATABASE_NAME;
     const ns = await this.getDatabaseNamespace();
     return DatabaseConnector.build<EventDatabase>(ns, defaultName);
   }

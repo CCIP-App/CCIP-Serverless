@@ -1,3 +1,4 @@
+import { DEFAULT_DATABASE_NAME } from "@/constant";
 import { DatabaseConnectionToken } from "@/infra/DatabaseConnection";
 import { DatabaseConnector } from "@/infra/DatabaseConnector";
 import { DoAnnouncementRepository } from "@/repository/DoAnnouncementRepository";
@@ -20,7 +21,7 @@ import { container } from "tsyringe";
 // Register database connection with factory that uses env directly
 container.register(DatabaseConnectionToken, {
   useFactory: () => {
-    return DatabaseConnector.build(env.EVENT_DATABASE, "ccip-serverless");
+    return DatabaseConnector.build(env.EVENT_DATABASE, DEFAULT_DATABASE_NAME);
   },
 });
 
