@@ -32,7 +32,7 @@
     "expect": "^30.0.2",
     "globals": "^16.2.0",
     "miniflare": "^4.20250617.3",
-    "prettier": "3.5.3",
+    "prettier": "3.6.0",
     "prettier-plugin-organize-imports": "^4.1.0",
     "tsx": "^4.20.3",
     "typescript-eslint": "^8.34.1",
