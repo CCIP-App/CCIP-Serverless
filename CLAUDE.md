@@ -87,6 +87,28 @@ CCIP Serverless is the serverless OPass backend built on Cloudflare Workers with
 - `src/handler/api/` - API route controllers using Chanfana OpenAPI
 - Controllers extend OpenAPIRoute base class
 
+### Announcement System
+
+**Entity**: `Announcement` - Manages event announcements with multi-language support
+
+**Features**:
+
+- Multi-language messages with `AnnouncementLocale` enum (EN, ZH_TW)
+- Publishing workflow with timestamps
+- Role-based visibility
+
+**Repository**: `AnnouncementRepository` - Provides role-based announcement queries
+
+**Use Cases**:
+
+- `AllAnnouncementQuery` - Lists announcements for a specific role
+- `CreateAnnouncementCommand` - Creates new announcements
+
+**API Endpoints**:
+
+- `GET /announcement` - List announcements (filters by attendee role)
+- `POST /announcement` - Create new announcement
+
 ### Database Schema
 
 Current schema includes:
@@ -257,6 +279,22 @@ export class AllAnnouncementQuery {
 - **Data transformation**: Convert domain entities to API responses
 - **Layer separation**: Keep domain logic separate from presentation concerns
 
+#### EvaluationResult Value Object
+
+`EvaluationResult` encapsulates the evaluation state of all rules for an attendee:
+
+```typescript
+// Contains evaluation results for multiple rules
+export class EvaluationResult {
+  getVisibleRules(): RuleEvaluationResult[];
+  getRule(ruleId: string): RuleEvaluationResult | null;
+  hasUsableRules(): boolean;
+  isDisabled(): boolean; // Checks if all visible rules are disabled
+}
+```
+
+This is passed to presenters for formatting into API responses.
+
 ```typescript
 // ✅ Correct - Presenter defines API schema
 export class JsonAnnouncementListPresenter
@@ -333,11 +371,20 @@ export class DoAttendeeRepository implements AttendeeRepository {
 **Container registration patterns:**
 
 ```typescript
-// ✅ Correct - Register infrastructure dependencies as useValue
-container.register(DatabaseConnectionToken, { useValue: dbConnection });
+// ✅ Correct - Use factory with direct env access from cloudflare:workers
+import { env } from "cloudflare:workers";
+
+container.register(DatabaseConnectionToken, {
+  useFactory: () => {
+    return DatabaseConnector.build(env.EVENT_DATABASE, DEFAULT_DATABASE_NAME);
+  },
+});
 
 // ✅ Correct - Register repositories as useClass for DI
 container.register(AttendeeRepositoryToken, { useClass: DoAttendeeRepository });
+
+// ✅ Correct - Register services as useClass for DI
+container.register(DatetimeServiceToken, { useClass: NativeDatetimeService });
 
 // ❌ Wrong - Manual instantiation bypasses DI
 container.register(AttendeeRepositoryToken, {
@@ -384,6 +431,28 @@ interface Env {
 ```
 
 Run `pnpm cf-typegen` after changing `wrangler.jsonc` to regenerate types.
+
+### Cloudflare Workers Environment Access
+
+**IMPORTANT**: Use `cloudflare:workers` import for accessing environment variables directly:
+
+```typescript
+// ✅ Correct - Import env from cloudflare:workers for direct access
+import { env } from "cloudflare:workers";
+
+// Use in services that need environment access
+export class NativeDatetimeService implements IDatetimeService {
+  getCurrentTime(): Date {
+    if (env.__TEST__ === "true" && env.__MOCK_DATETIME__) {
+      return new Date(env.__MOCK_DATETIME__);
+    }
+    return new Date();
+  }
+}
+
+// ❌ Wrong - Passing env through controller context in services
+// Services should import env directly, not receive it via injection
+```
 
 ## API Development Workflow
 
@@ -660,7 +729,7 @@ The ruleset system is one of the most complex features in CCIP Serverless. It im
 - `And`: All child conditions must be true (composite)
 - `Or`: At least one child condition must be true (composite)
 
-**Planned Condition Types**:
+**Not Yet Implemented** (will throw error in ConditionNodeFactory):
 
 - `Role`: Check attendee role
 - `Staff`: Check if staff query mode
@@ -711,7 +780,10 @@ For detailed design documentation, see `docs/ruleset.md`.
 **✅ Condition Node Implementation**:
 
 ```typescript
-// ConditionNodeFactory supports recursive parsing
+// ConditionNodeFactory is in src/entity/ConditionFactory.ts (separate from domain entities)
+// Supports recursive parsing for complex AST structures
+import { ConditionNodeFactory } from "@/entity/ConditionFactory";
+
 export class ConditionNodeFactory {
   static create(json: Record<string, unknown>): ConditionNode {
     switch (json.type as string) {
