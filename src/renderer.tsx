@@ -6,6 +6,7 @@ export const renderer = jsxRenderer(({ children }) => {
     <html>
       <head>
         <ViteClient />
+        <title>OPass CCIP Serverless</title>
         <Link href="/src/style.css" rel="stylesheet" />
       </head>
       <body>{children}</body>
