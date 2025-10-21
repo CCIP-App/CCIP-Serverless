@@ -17,7 +17,7 @@
     "@abraham/reflection": "^0.13.0",
     "chanfana": "^2.8.1",
     "drizzle-orm": "^0.44.2",
-    "hono": "^4.8.2",
+    "hono": "^4.9.7",
     "tsyringe": "^4.10.0",
     "zod": "^3.25.67"
   },
