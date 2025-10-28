@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@abraham/reflection": "^0.13.0",
-    "chanfana": "^2.8.1",
+    "chanfana": "^2.8.3",
     "drizzle-orm": "^0.44.2",
     "hono": "^4.10.3",
     "tsyringe": "^4.10.0",
