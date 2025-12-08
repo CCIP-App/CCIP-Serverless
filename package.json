@@ -31,7 +31,7 @@
     "eslint-plugin-react": "^7.37.5",
     "expect": "^30.2.0",
     "globals": "^16.5.0",
-    "miniflare": "^4.20251125.0",
+    "miniflare": "^4.20251202.1",
     "prettier": "3.6.2",
     "prettier-plugin-organize-imports": "^4.3.0",
     "tsx": "^4.21.0",
