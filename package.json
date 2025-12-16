@@ -25,7 +25,7 @@
     "@cloudflare/vite-plugin": "^1.17.1",
     "@cucumber/cucumber": "^12.4.0",
     "@eslint/js": "^9.39.2",
-    "@types/node": "^24.10.1",
+    "@types/node": "^25.0.2",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
     "eslint-plugin-react": "^7.37.5",
