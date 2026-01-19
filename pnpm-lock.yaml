@@ -55,8 +55,8 @@ importers:
         specifier: ^16.5.0
         version: 16.5.0
       miniflare:
-        specifier: ^4.20251217.0
-        version: 4.20251217.0
+        specifier: ^4.20260114.0
+        version: 4.20260114.0
       prettier:
         specifier: 3.6.2
         version: 3.6.2
@@ -1402,12 +1402,12 @@ packages:
   '@sinclair/typebox@0.34.35':
     resolution: {integrity: sha512-C6ypdODf2VZkgRT6sFM8E1F8vR+HcffniX0Kp8MsU8PIfrlXbNCBz0jzj17GjdmjTx1OtZzdH8+iALL21UjF5A==}
 
-  '@sindresorhus/is@7.1.1':
-    resolution: {integrity: sha512-rO92VvpgMc3kfiTjGT52LEtJ8Yc5kCWhZjLQ3LwlA4pSgPpQO7bVpYXParOD8Jwf+cVQECJo3yP/4I8aZtUQTQ==}
+  '@sindresorhus/is@7.2.0':
+    resolution: {integrity: sha512-P1Cz1dWaFfR4IR+U13mqqiGsLFf1KbayybWwdd2vfctdV6hDpUkgCY0nKOLLTMSoRd/jJNjtbqzf13K8DCCXQw==}
     engines: {node: '>=18'}
 
-  '@speed-highlight/core@1.2.12':
-    resolution: {integrity: sha512-uilwrK0Ygyri5dToHYdZSjcvpS2ZwX0w5aSt3GCEN9hrjxWCoeV4Z2DTXuxjwbntaLQIEEAlCeNQss5SoHvAEA==}
+  '@speed-highlight/core@1.2.14':
+    resolution: {integrity: sha512-G4ewlBNhUtlLvrJTb88d2mdy2KRijzs4UhnlrOSRT4bmjh/IqNElZa3zkrZ+TC47TwtlDWzVLFADljF1Ijp5hA==}
 
   '@teppeis/multimaps@3.0.0':
     resolution: {integrity: sha512-ID7fosbc50TbT0MK0EG12O+gAP3W3Aa/Pz4DaTtQtEvlc9Odaqi0de+xuZ7Li2GtK4HzEX7IuRWS/JmZLksR3Q==}
@@ -4078,7 +4078,7 @@ snapshots:
   '@poppinss/dumper@0.6.5':
     dependencies:
       '@poppinss/colors': 4.1.6
-      '@sindresorhus/is': 7.1.1
+      '@sindresorhus/is': 7.2.0
       supports-color: 10.2.2
 
   '@poppinss/exception@1.2.3': {}
@@ -4162,9 +4162,9 @@ snapshots:
 
   '@sinclair/typebox@0.34.35': {}
 
-  '@sindresorhus/is@7.1.1': {}
+  '@sindresorhus/is@7.2.0': {}
 
-  '@speed-highlight/core@1.2.12': {}
+  '@speed-highlight/core@1.2.14': {}
 
   '@teppeis/multimaps@3.0.0': {}
 
@@ -6280,7 +6280,7 @@ snapshots:
     dependencies:
       '@poppinss/colors': 4.1.6
       '@poppinss/dumper': 0.6.5
-      '@speed-highlight/core': 1.2.12
+      '@speed-highlight/core': 1.2.14
       cookie: 1.1.1
       youch-core: 0.3.3
 
