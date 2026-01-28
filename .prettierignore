@@ -4,3 +4,4 @@ coverage
 pnpm-lock.yaml
 drizzle
 worker-configuration.d.ts
+CLAUDE.md

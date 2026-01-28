@@ -9,9 +9,7 @@ export type AnnouncementData = {
   uri: string;
 };
 
-export class JsonAnnouncementListPresenter
-  implements AnnouncementListPresenter
-{
+export class JsonAnnouncementListPresenter implements AnnouncementListPresenter {
   private announcements: Announcement[] = [];
 
   addAnnouncement(announcement: Announcement): void {

@@ -12,8 +12,8 @@ export interface DurableDatabase {
 }
 
 export class DatabaseConnector<
-    T extends Rpc.DurableObjectBranded & DurableDatabase,
-  >
+  T extends Rpc.DurableObjectBranded & DurableDatabase,
+>
   implements ISqlDatabaseConnection, IKvDatabaseConnection
 {
   private readonly dialect: SQLiteDialect = new SQLiteSyncDialect();
