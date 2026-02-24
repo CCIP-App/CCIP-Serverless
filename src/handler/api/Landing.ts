@@ -17,7 +17,7 @@ export class LandingController extends BaseController {
     request: {
       query: z.object({
         token: z
-          .string({ message: "token required" })
+          .string({ error: "token required" })
           .describe("The attendee token"),
       }),
     },

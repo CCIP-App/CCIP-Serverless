@@ -34,8 +34,10 @@ export class GetAttendeeStatusController extends BaseController {
               user_id: z.string().describe("User ID (display name)"),
               first_use: z.number().nullable().describe("First use timestamp"),
               role: z.string().describe("Attendee role"),
-              scenario: z.record(z.unknown()).describe("Scenario data"),
-              attr: z.record(z.unknown()).describe("Attributes"),
+              scenario: z
+                .record(z.string(), z.unknown())
+                .describe("Scenario data"),
+              attr: z.record(z.string(), z.unknown()).describe("Attributes"),
             }),
           },
         },
