@@ -12,8 +12,8 @@ importers:
         specifier: ^0.13.0
         version: 0.13.0
       chanfana:
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.2.1
+        version: 3.2.1
       drizzle-orm:
         specifier: ^0.45.1
         version: 0.45.1
@@ -87,8 +87,8 @@ packages:
   '@abraham/reflection@0.13.0':
     resolution: {integrity: sha512-sQYhhraGPPRP6zoqpqpSaoYL+XY5KNmQCcoB3IuQh1z1aWmkHXcxwyTxRkTJ60L2aUjrbiqIqoYkrB/1c7kjQA==}
 
-  '@asteasolutions/zod-to-openapi@8.4.1':
-    resolution: {integrity: sha512-WmJUsFINbnWxGvHSd16aOjgKf+5GsfdxruO2YDLcgplsidakCauik1lhlk83YDH06265Yd1XtUyF24o09uygpw==}
+  '@asteasolutions/zod-to-openapi@8.4.3':
+    resolution: {integrity: sha512-lwfMTN7kDbFDwMniYZUebiGGHxVGBw9ZSI4IBYjm6Ey22Kd5z/fsQb2k+Okr8WMbCCC553vi/ZM9utl5/XcvuQ==}
     peerDependencies:
       zod: ^4.0.0
 
@@ -1697,8 +1697,9 @@ packages:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
 
-  chanfana@3.0.0:
-    resolution: {integrity: sha512-O143r9g6HlFeIdk05hEQyRIQEXTV+tjjF8fmOvByNT6zqKIzFbrs+IqnZ6reC/2s3j0XHzYZ38FE9qfTlR1PMw==}
+  chanfana@3.2.1:
+    resolution: {integrity: sha512-SHi6AYErJwS5C2iQx12AsCY1w0ztQcxWOI4yC+G2BGguLuuLGixTrUu7dP6apuPMjL04iwZALUT/m1+5+26+xw==}
+    engines: {node: '>=18'}
     hasBin: true
 
   check-error@2.1.1:
@@ -3201,7 +3202,7 @@ snapshots:
 
   '@abraham/reflection@0.13.0': {}
 
-  '@asteasolutions/zod-to-openapi@8.4.1(zod@4.3.6)':
+  '@asteasolutions/zod-to-openapi@8.4.3(zod@4.3.6)':
     dependencies:
       openapi3-ts: 4.5.0
       zod: 4.3.6
@@ -4449,9 +4450,9 @@ snapshots:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
 
-  chanfana@3.0.0:
+  chanfana@3.2.1:
     dependencies:
-      '@asteasolutions/zod-to-openapi': 8.4.1(zod@4.3.6)
+      '@asteasolutions/zod-to-openapi': 8.4.3(zod@4.3.6)
       js-yaml: 4.1.1
       openapi3-ts: 4.5.0
       yargs-parser: 22.0.0
