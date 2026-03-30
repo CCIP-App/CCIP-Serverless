@@ -55,8 +55,8 @@ importers:
         specifier: ^17.4.0
         version: 17.4.0
       miniflare:
-        specifier: ^4.20260317.1
-        version: 4.20260317.1
+        specifier: ^4.20260317.3
+        version: 4.20260317.3
       prettier:
         specifier: 3.8.1
         version: 3.8.1
@@ -2427,6 +2427,11 @@ packages:
 
   miniflare@4.20260317.1:
     resolution: {integrity: sha512-A3csI1HXEIfqe3oscgpoRMHdYlkReQKPH/g5JE53vFSjoM6YIAOGAzyDNeYffwd9oQkPWDj9xER8+vpxei8klA==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
+  miniflare@4.20260317.3:
+    resolution: {integrity: sha512-tK78D3X4q30/SXqVwMhWrUfH+ffRou9dJLC+jkhNy5zh1I7i7T4JH6xihOvYxdCSBavJ5fQXaaxDJz6orh09BA==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -5248,6 +5253,18 @@ snapshots:
   mime@3.0.0: {}
 
   miniflare@4.20260317.1:
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      sharp: 0.34.5
+      undici: 7.24.4
+      workerd: 1.20260317.1
+      ws: 8.18.0
+      youch: 4.1.0-beta.10
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  miniflare@4.20260317.3:
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       sharp: 0.34.5
