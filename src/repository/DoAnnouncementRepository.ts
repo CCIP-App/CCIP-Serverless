@@ -3,7 +3,7 @@ import { AttendeeRole } from "@/entity/Attendee";
 import { Locale } from "@/entity/Locale";
 import {
   DatabaseConnectionToken,
-  ISqlDatabaseConnection,
+  type ISqlDatabaseConnection,
 } from "@/infra/DatabaseConnection";
 import { AnnouncementRepository } from "@/usecase/interface";
 import { sql } from "drizzle-orm";

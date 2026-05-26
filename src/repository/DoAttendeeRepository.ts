@@ -1,7 +1,7 @@
 import { Attendee, AttendeeRole } from "@/entity/Attendee";
 import {
   DatabaseConnectionToken,
-  ISqlDatabaseConnection,
+  type ISqlDatabaseConnection,
 } from "@/infra/DatabaseConnection";
 import { AttendeeRepository } from "@/usecase/interface";
 import { createHash } from "crypto";

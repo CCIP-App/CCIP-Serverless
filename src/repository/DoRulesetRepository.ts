@@ -1,7 +1,7 @@
 import { Ruleset } from "@/entity/Ruleset";
 import {
   DatabaseConnectionToken,
-  IKvDatabaseConnection,
+  type IKvDatabaseConnection,
 } from "@/infra/DatabaseConnection";
 import { RuleFactory } from "@/service/RuleFactory";
 import { RuleFactoryToken, RulesetRepository } from "@/usecase/interface";

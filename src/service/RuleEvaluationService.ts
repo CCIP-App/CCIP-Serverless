@@ -8,8 +8,8 @@ import { Rule } from "@/entity/Rule";
 import { Ruleset } from "@/entity/Ruleset";
 import {
   DatetimeServiceToken,
-  IDatetimeService,
-  RuleEvaluationService as IRuleEvaluationService,
+  type IDatetimeService,
+  type RuleEvaluationService as IRuleEvaluationService,
 } from "@/usecase/interface";
 import { inject, injectable } from "tsyringe";
 
