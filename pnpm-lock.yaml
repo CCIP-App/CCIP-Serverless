@@ -55,8 +55,8 @@ importers:
         specifier: ^17.7.0
         version: 17.7.0
       miniflare:
-        specifier: ^4.20260617.1
-        version: 4.20260617.1
+        specifier: ^4.20260625.0
+        version: 4.20260625.0
       prettier:
         specifier: 3.8.4
         version: 3.8.4
@@ -5612,7 +5612,7 @@ snapshots:
   normalize-package-data@8.0.0:
     dependencies:
       hosted-git-info: 9.0.3
-      semver: 7.8.1
+      semver: 7.8.5
       validate-npm-package-license: 3.0.4
 
   object-assign@4.1.1: {}
